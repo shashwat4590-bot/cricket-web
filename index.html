@@ -6,30 +6,41 @@
 <style>
 
 body{
-font-family: Arial;
-background: linear-gradient(180deg,#001a4d,#003399);
+font-family:Arial;
+background:linear-gradient(180deg,#001a4d,#003399);
 color:white;
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
+margin:0;
 }
 
 .container{
-width:350px;
+width:380px;
+background:#001a33;
+padding:25px;
+border-radius:15px;
+box-shadow:0 0 15px rgba(0,0,0,0.6);
 text-align:center;
 }
 
 .title{
-font-size:22px;
+font-size:24px;
 margin-bottom:10px;
+}
+
+.timer{
+font-size:18px;
+margin-bottom:10px;
+color:#ffd700;
 }
 
 .question{
 background:#1f4bd8;
-padding:20px;
-border-radius:12px;
-margin-bottom:20px;
+padding:18px;
+border-radius:10px;
+margin-bottom:15px;
 font-size:18px;
 }
 
@@ -37,13 +48,14 @@ font-size:18px;
 display:block;
 width:100%;
 padding:12px;
-margin:10px 0;
+margin:8px 0;
 border:none;
 border-radius:20px;
 background:#1c3faa;
 color:white;
-font-size:16px;
+font-size:15px;
 cursor:pointer;
+transition:0.3s;
 }
 
 .answer:hover{
@@ -51,21 +63,11 @@ background:#2f5cff;
 }
 
 .correct{
-background:green;
+background:#2ecc71 !important;
 }
 
 .wrong{
-background:red;
-}
-
-.skip{
-margin-top:15px;
-padding:10px 20px;
-border:none;
-border-radius:20px;
-background:#4d6cff;
-color:white;
-cursor:pointer;
+background:#e74c3c !important;
 }
 
 </style>
@@ -77,37 +79,126 @@ cursor:pointer;
 
 <div class="title">CRICKET BILLIONAIRE</div>
 
-<div class="question" id="question">
-What is it called when a batsman scores zero runs?
-</div>
+<div class="timer">Time: <span id="time">10</span></div>
 
-<button class="answer" onclick="check(this,false)">A: A Blank</button>
-<button class="answer" onclick="check(this,true)">B: A Duck</button>
-<button class="answer" onclick="check(this,false)">C: A Zero</button>
-<button class="answer" onclick="check(this,false)">D: A Goose</button>
+<div class="question" id="question"></div>
 
-<button class="skip" onclick="next()">Skip Question</button>
+<div id="answers"></div>
 
 </div>
 
 <script>
 
-function check(btn,correct){
+let questions=[
+{
+q:"What is it called when a batsman scores zero runs?",
+a:["A Blank","A Duck","A Zero","A Goose"],
+c:1
+},
+{
+q:"How many players are in a cricket team?",
+a:["9","10","11","12"],
+c:2
+},
+{
+q:"How many overs are there in T20 cricket?",
+a:["10","15","20","25"],
+c:2
+},
+{
+q:"What is 6 runs called in cricket?",
+a:["Six","Boundary","Strike","Power hit"],
+c:0
+},
+{
+q:"Which country started cricket?",
+a:["India","England","Australia","South Africa"],
+c:1
+},
+{
+q:"What is LBW?",
+a:["Leg Before Wicket","Long Ball Wide","Left Bat Wing","Low Bat Wicket"],
+c:0
+}
+]
 
-if(correct){
-btn.classList.add("correct")
-}else{
-btn.classList.add("wrong")
+let current=0
+let time=10
+let timer
+
+function loadQuestion(){
+
+clearInterval(timer)
+
+time=10
+document.getElementById("time").innerText=time
+
+let q=questions[current]
+
+document.getElementById("question").innerText=q.q
+
+let answersHTML=""
+
+q.a.forEach((ans,i)=>{
+
+answersHTML+=`<button class="answer" onclick="checkAnswer(${i})">${ans}</button>`
+
+})
+
+document.getElementById("answers").innerHTML=answersHTML
+
+timer=setInterval(updateTimer,1000)
+
+}
+
+function updateTimer(){
+
+time--
+
+document.getElementById("time").innerText=time
+
+if(time<=0){
+
+clearInterval(timer)
+nextQuestion()
+
 }
 
 }
 
-function next(){
+function checkAnswer(i){
 
-document.getElementById("question").innerText =
-"Who scored the most runs in IPL 2023?"
+clearInterval(timer)
+
+let correct=questions[current].c
+
+let buttons=document.querySelectorAll(".answer")
+
+buttons.forEach((btn,index)=>{
+
+if(index===correct) btn.classList.add("correct")
+
+if(index===i && i!==correct) btn.classList.add("wrong")
+
+})
+
+setTimeout(nextQuestion,1500)
 
 }
+
+function nextQuestion(){
+
+current++
+
+if(current>=questions.length){
+current=0
+}
+
+loadQuestion()
+
+}
+
+loadQuestion()
 
 </script>
 

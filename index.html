@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cricket Billionaire</title>
 
+<style>
+
+body{
+font-family: Arial;
+background: linear-gradient(180deg,#001a4d,#003399);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+width:350px;
+text-align:center;
+}
+
+.title{
+font-size:22px;
+margin-bottom:10px;
+}
+
+.question{
+background:#1f4bd8;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+font-size:18px;
+}
+
+.answer{
+display:block;
+width:100%;
+padding:12px;
+margin:10px 0;
+border:none;
+border-radius:20px;
+background:#1c3faa;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+.answer:hover{
+background:#2f5cff;
+}
+
+.correct{
+background:green;
+}
+
+.wrong{
+background:red;
+}
+
+.skip{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:20px;
+background:#4d6cff;
+color:white;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title">CRICKET BILLIONAIRE</div>
+
+<div class="question" id="question">
+What is it called when a batsman scores zero runs?
+</div>
+
+<button class="answer" onclick="check(this,false)">A: A Blank</button>
+<button class="answer" onclick="check(this,true)">B: A Duck</button>
+<button class="answer" onclick="check(this,false)">C: A Zero</button>
+<button class="answer" onclick="check(this,false)">D: A Goose</button>
+
+<button class="skip" onclick="next()">Skip Question</button>
+
+</div>
+
+<script>
+
+function check(btn,correct){
+
+if(correct){
+btn.classList.add("correct")
+}else{
+btn.classList.add("wrong")
+}
+
+}
+
+function next(){
+
+document.getElementById("question").innerText =
+"Who scored the most runs in IPL 2023?"
+
+}
+
+</script>
+
+</body>
+</html>

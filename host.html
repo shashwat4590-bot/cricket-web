@@ -187,6 +187,26 @@
         logAction("Betting Closed.");
     }
 
+    // --- ADD THIS TO YOUR host.html ---
+
+// Add a New Button in the HTML part
+/* <button class="btn-clear" onclick="clearTable()">🧹 Clear Player Screen</button> 
+*/
+
+// Update CSS for the new button
+/*
+.btn-clear { background: #334155; color: white; margin-top: 15px; width: 100%; }
+*/
+
+function clearTable() {
+    // This removes the 'currentQuestion' node from Firebase
+    // which triggers the (!data) check in the player app
+    questionRef.remove().then(() => {
+        updateStatus("Standby", "");
+        logAction("Screen Cleared - Waiting Mode");
+    });
+}
+
     function reveal(ans) {
         questionRef.update({ 
             result: ans,

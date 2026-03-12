@@ -65,15 +65,24 @@
     ];
     let index = 0;
 
-    function send() {
-        questionRef.set({
-            question: questions[index],
-            status: "open",
-            endTime: Date.now() + 10500, // 10 seconds + small buffer
-            result: null
-        });
-    }
+    /* Replace the send() function in host.html with this */
 
+function send() {
+    // 1. Move to the next question automatically if you like, 
+    // or just use the current one displayed.
+    
+    questionRef.set({
+        question: questions[index],
+        status: "open",
+        endTime: Date.now() + 10500, // 10 seconds
+        result: null,                // CLEARING the old result is key!
+        startTime: Date.now()        // Helpful for syncing
+    }).then(() => {
+        console.log("Question Pushed Successfully");
+    }).catch((error) => {
+        console.error("Firebase Error:", error);
+    });
+}
     function lock() {
         questionRef.update({ status: "locked" });
     }

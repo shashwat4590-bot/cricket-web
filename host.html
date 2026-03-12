@@ -4,8 +4,6 @@
 
 <title>Host Panel</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -16,35 +14,29 @@ font-family:Arial;
 background:#f2f4f8;
 display:flex;
 justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
+padding-top:40px;
 }
 
 .panel{
-width:380px;
+width:400px;
 background:white;
-padding:25px;
-border-radius:12px;
+padding:20px;
+border-radius:10px;
 box-shadow:0 4px 15px rgba(0,0,0,0.15);
-text-align:center;
 }
 
-input{
-width:100%;
-padding:10px;
-margin-bottom:15px;
-font-size:16px;
+.question{
+display:flex;
+justify-content:space-between;
+margin-bottom:12px;
 }
 
 button{
-padding:12px;
-width:100%;
 background:#0a84ff;
 color:white;
 border:none;
-border-radius:8px;
-font-size:16px;
+padding:8px 14px;
+border-radius:6px;
 cursor:pointer;
 }
 
@@ -60,11 +52,27 @@ opacity:0.9;
 
 <div class="panel">
 
-<h2>🎮 Host Control Panel</h2>
+<h2>🎮 Host Panel</h2>
 
-<input id="questionInput" placeholder="Enter question">
+<div class="question">
+<span>Next ball > 1.5 runs?</span>
+<button onclick="send('Next ball > 1.5 runs?')">Send</button>
+</div>
 
-<button onclick="sendQuestion()">Send Question</button>
+<div class="question">
+<span>Next ball > 3.5 runs?</span>
+<button onclick="send('Next ball > 3.5 runs?')">Send</button>
+</div>
+
+<div class="question">
+<span>Boundary on next ball?</span>
+<button onclick="send('Boundary on next ball?')">Send</button>
+</div>
+
+<div class="question">
+<span>Wicket this over?</span>
+<button onclick="send('Wicket this over?')">Send</button>
+</div>
 
 </div>
 
@@ -92,15 +100,11 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-function sendQuestion(){
-
-let question = document.getElementById("questionInput").value;
+function send(q){
 
 firebase.database().ref("currentQuestion").set({
-question: question
+question:q
 });
-
-document.getElementById("questionInput").value="";
 
 }
 

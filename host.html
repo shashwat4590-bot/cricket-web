@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Host Panel</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f4f8;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.panel{
+width:380px;
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.15);
+text-align:center;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+font-size:16px;
+}
+
+button{
+padding:12px;
+width:100%;
+background:#0a84ff;
+color:white;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="panel">
+
+<h2>🎮 Host Control Panel</h2>
+
+<input id="questionInput" placeholder="Enter question">
+
+<button onclick="sendQuestion()">Send Question</button>
+
+</div>
+
+<script>
+
+const firebaseConfig = {
+
+apiKey: "PASTE_YOUR_API_KEY",
+
+authDomain: "cricket-web-predict.firebaseapp.com",
+
+databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
+
+projectId: "cricket-web-predict",
+
+storageBucket: "cricket-web-predict.appspot.com",
+
+messagingSenderId: "PASTE",
+
+appId: "PASTE"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+function sendQuestion(){
+
+let question = document.getElementById("questionInput").value;
+
+firebase.database().ref("currentQuestion").set({
+question: question
+});
+
+document.getElementById("questionInput").value="";
+
+}
+
+</script>
+
+</body>
+</html>

@@ -100,14 +100,18 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+<script>
+
 function send(q){
 
 firebase.database().ref("currentQuestion").set({
-question:q
+question:q,
+startTime: Date.now()
 });
 
 }
 
+</script>
 </script>
 
 </body>

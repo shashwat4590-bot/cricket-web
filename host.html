@@ -1,206 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Host Panel</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<style>
-
-*{
-box-sizing:border-box;
-font-family:Inter,system-ui,Arial;
-}
-
-body{
-margin:0;
-background:#0e1117;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-/* PANEL */
-
-.panel{
-width:420px;
-background:#151a22;
-padding:25px;
-border-radius:12px;
-box-shadow:0 15px 40px rgba(0,0,0,0.5);
-}
-
-/* TITLE */
-
-.title{
-font-size:20px;
-margin-bottom:20px;
-}
-
-/* QUESTION DISPLAY */
-
-.current{
-font-size:18px;
-margin-bottom:20px;
-padding:12px;
-background:#0e1117;
-border-radius:8px;
-}
-
-/* BUTTONS */
-
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-font-size:15px;
-font-weight:600;
-cursor:pointer;
-}
-
-.send{
-background:#2ed573;
-color:black;
-}
-
-.next{
-background:#1e90ff;
-color:white;
-}
-
-.correctYes{
-background:#2ed573;
-color:black;
-}
-
-.correctNo{
-background:#ff4757;
-color:white;
-}
-
-button:hover{
-opacity:0.9;
-}
-
-</style>
-
+    <title>Host Control Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        *{box-sizing:border-box;font-family:Inter,system-ui,Arial;}
+        body{margin:0;background:#0e1117;color:white;display:flex;justify-content:center;align-items:center;height:100vh;}
+        .panel{width:420px;background:#151a22;padding:25px;border-radius:12px;border:1px solid #333;}
+        .title{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;}
+        #live-status{font-size:12px;color:#2ed573;}
+        .current{font-size:18px;margin-bottom:20px;padding:15px;background:#0e1117;border-radius:8px;border-left:4px solid #1e90ff;}
+        button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;}
+        .send{background:#2ed573;color:black;}
+        .lock{background:#ffa502;color:black;}
+        .next{background:#1e90ff;color:white;}
+        .correctYes{background:#2ed573;color:black;width:48%;display:inline-block;}
+        .correctNo{background:#ff4757;color:white;width:48%;display:inline-block;}
+        .clear{background:transparent;border:1px solid #444;color:#888;margin-top:20px;}
+        button:active{transform:scale(0.98);}
+    </style>
 </head>
-
 <body>
-
 <div class="panel">
+    <div class="title">
+        <span>🎮 Host Control</span>
+        <span id="live-status">● Live</span>
+    </div>
+    <div id="currentQuestion" class="current">Boundary on next ball?</div>
+    
+    <button class="send" onclick="send()">🚀 PUSH QUESTION (10s)</button>
+    <button class="lock" onclick="lock()">🔒 LOCK BETS NOW</button>
+    <button class="next" onclick="nextQuestion()">⏭️ QUEUE NEXT</button>
+    
+    <div style="margin-top:15px; display:flex; justify-content:space-between;">
+        <button class="correctYes" onclick="reveal('YES')">Reveal YES</button>
+        <button class="correctNo" onclick="reveal('NO')">Reveal NO</button>
+    </div>
 
-<div class="title">
-🎮 Host Control Panel
-</div>
-
-<div id="currentQuestion" class="current">
-Next ball > 1.5 runs?
-</div>
-
-<button class="send" onclick="send()">
-Send Question
-</button>
-
-<button class="next" onclick="nextQuestion()">
-Next Question
-</button>
-
-<button class="correctYes" onclick="reveal('YES')">
-Reveal Correct: YES
-</button>
-
-<button class="correctNo" onclick="reveal('NO')">
-Reveal Correct: NO
-</button>
-
+    <button class="clear" onclick="resetGame()">🗑️ Clear/Reset All</button>
 </div>
 
 <script>
+    const firebaseConfig = {
+        apiKey: "PASTE_API_KEY",
+        authDomain: "cricket-web-predict.firebaseapp.com",
+        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
+        projectId: "cricket-web-predict",
+        storageBucket: "cricket-web-predict.appspot.com",
+        messagingSenderId: "PASTE",
+        appId: "PASTE"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const questionRef = db.ref("currentQuestion");
 
-/* Firebase config */
+    const questions = [
+        "Boundary on next ball?",
+        "Next ball > 1.5 runs?",
+        "Wicket this over?",
+        "Dot ball next delivery?",
+        "Sixer this over?"
+    ];
+    let index = 0;
 
-const firebaseConfig = {
+    function send() {
+        questionRef.set({
+            question: questions[index],
+            status: "open",
+            endTime: Date.now() + 10500, // 10 seconds + small buffer
+            result: null
+        });
+    }
 
-apiKey:"PASTE_API_KEY",
+    function lock() {
+        questionRef.update({ status: "locked" });
+    }
 
-authDomain:"cricket-web-predict.firebaseapp.com",
+    function reveal(ans) {
+        questionRef.update({ 
+            result: ans,
+            status: "locked" 
+        });
+    }
 
-databaseURL:"https://cricket-web-predict-default-rtdb.firebaseio.com",
+    function nextQuestion() {
+        index = (index + 1) % questions.length;
+        document.getElementById("currentQuestion").innerText = questions[index];
+    }
 
-projectId:"cricket-web-predict",
-
-storageBucket:"cricket-web-predict.appspot.com",
-
-messagingSenderId:"PASTE",
-
-appId:"PASTE"
-
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db=firebase.database();
-
-/* Question list */
-
-const questions=[
-
-"Next ball > 1.5 runs?",
-"Next ball > 3.5 runs?",
-"Boundary on next ball?",
-"Wicket this over?",
-"Dot ball next delivery?"
-
-];
-
-let index=0;
-
-/* Send question */
-
-function send(){
-
-firebase.database().ref("currentQuestion").set({
-question:questions[index],
-startTime:Date.now(),
-correct:null
-});
-
-}
-
-/* Next question */
-
-function nextQuestion(){
-
-index++;
-
-if(index>=questions.length){
-index=0;
-}
-
-document.getElementById("currentQuestion").innerText=questions[index];
-
-}
-
-/* Reveal answer */
-
-function reveal(ans){
-
-firebase.database().ref("currentQuestion").update({
-correct:ans
-});
-
-}
-
+    function resetGame() {
+        if(confirm("This will clear everything for all users. Continue?")) {
+            questionRef.remove();
+        }
+    }
 </script>
-
 </body>
 </html>

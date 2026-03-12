@@ -258,31 +258,49 @@
     // Initialize UI
     document.getElementById("scoreDisplay").innerText = userScore + " PTS";
 
-    // --- LIVE LISTENER ---
-    questionRef.on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
+   // --- UPDATE THIS SECTION IN index.html ---
+questionRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    
+    // If data is null or empty, show the "Waiting" screen
+    if (!data) {
+        showWaitingScreen();
+        return;
+    }
 
-        // Update Question Text Immediately
-        document.getElementById("question").innerText = data.question;
+    document.getElementById("question").innerText = data.question;
+    const hasResult = data.hasOwnProperty('result') && data.result !== null;
 
-        const hasResult = data.hasOwnProperty('result') && data.result !== null;
-
-        if (!hasResult) {
-            if (data.status === "open") {
-                // If the host just pushed a new question, the app resets
-                if (selectedChoice === null || data.endTime > Date.now() + 2000) {
-                    resetButtonsUI();
-                    startTimer(data.endTime);
-                }
-            } else if (data.status === "locked") {
-                lockButtons();
-                document.getElementById("timerText").innerText = "LOCKED";
+    if (!hasResult) {
+        if (data.status === "open") {
+            if (selectedChoice === null) {
+                resetButtonsUI();
+                startTimer(data.endTime);
             }
-        } else {
-            handleResult(data.result);
+        } else if (data.status === "locked") {
+            lockButtons();
+            document.getElementById("timerText").innerText = "LOCKED";
         }
+    } else {
+        handleResult(data.result);
+    }
+});
+
+// New Helper Function
+function showWaitingScreen() {
+    clearInterval(timerInterval);
+    document.getElementById("question").innerText = "Waiting for next ball...";
+    document.getElementById("timerText").innerText = "STAY TUNED";
+    document.getElementById("timerFill").style.width = "0%";
+    lockButtons(); // Stop them from clicking old buttons
+    
+    // Optional: Reset button colors to default
+    const btns = [document.getElementById("yesBtn"), document.getElementById("noBtn")];
+    btns.forEach(b => {
+        b.classList.remove("correct", "wrong", "locked-in");
+        b.style.opacity = "0.5";
     });
+}
 
     function startTimer(endTime) {
         clearInterval(timerInterval);

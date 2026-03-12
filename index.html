@@ -6,8 +6,6 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Firebase -->
-
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -33,12 +31,18 @@ text-align:center;
 }
 
 h2{
-margin-bottom:20px;
+margin-bottom:15px;
 }
 
 #question{
 font-size:18px;
+margin-bottom:15px;
+}
+
+#timer{
+font-size:16px;
 margin-bottom:20px;
+color:#e74c3c;
 }
 
 .buttons{
@@ -75,16 +79,16 @@ opacity:0.9;
 
 <body>
 
-  <div id="timer">
-Time left: 10
-</div>
-  
 <div class="app">
 
 <h2>🏏 Cricket Prediction Game</h2>
 
 <div id="question">
 Waiting for host question...
+</div>
+
+<div id="timer">
+Time left: 10
 </div>
 
 <div class="buttons">
@@ -99,7 +103,7 @@ Waiting for host question...
 
 <script>
 
-/* Firebase config (REPLACE WITH YOUR OWN) */
+/* Firebase config */
 
 const firebaseConfig = {
 
@@ -119,13 +123,11 @@ appId: "PASTE"
 
 };
 
-/* Initialize Firebase */
-
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-/* Listen for new question */
+/* Listen for question */
 
 const questionRef = db.ref("currentQuestion");
 
@@ -137,9 +139,39 @@ if(data){
 
 document.getElementById("question").innerText = data.question;
 
+startTimer(data.startTime);
+
 }
 
 });
+
+let timerInterval;
+
+function startTimer(startTime){
+
+clearInterval(timerInterval);
+
+let duration = 10;
+
+timerInterval = setInterval(()=>{
+
+let elapsed = Math.floor((Date.now() - startTime)/1000);
+
+let remaining = duration - elapsed;
+
+if(remaining <= 0){
+
+remaining = 0;
+
+clearInterval(timerInterval);
+
+}
+
+document.getElementById("timer").innerText = "Time left: " + remaining;
+
+},1000);
+
+}
 
 /* Player answer */
 

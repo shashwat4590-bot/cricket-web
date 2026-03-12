@@ -11,66 +11,97 @@
 
 <style>
 
+*{
+box-sizing:border-box;
+font-family: "Segoe UI", Arial;
+}
+
 body{
-font-family:Arial;
-background:#f2f4f8;
+margin:0;
+height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-height:100vh;
-margin:0;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 }
 
-.app{
-width:380px;
+/* Card */
+
+.card{
+width:420px;
 background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 4px 15px rgba(0,0,0,0.15);
+border-radius:16px;
+padding:30px;
+box-shadow:0 15px 40px rgba(0,0,0,0.25);
 text-align:center;
 }
 
-h2{
-margin-bottom:15px;
+/* Title */
+
+.title{
+font-size:22px;
+font-weight:600;
+margin-bottom:10px;
 }
+
+/* Question */
 
 #question{
 font-size:18px;
+margin-top:15px;
 margin-bottom:15px;
+color:#333;
 }
 
+/* Timer */
+
 #timer{
-font-size:16px;
+font-size:15px;
+color:#ff4d4d;
 margin-bottom:20px;
-color:#e74c3c;
+font-weight:600;
 }
+
+/* Buttons */
 
 .buttons{
 display:flex;
-justify-content:space-between;
+gap:15px;
 }
 
 button{
-width:45%;
-padding:12px;
-font-size:16px;
+flex:1;
+padding:14px;
 border:none;
-border-radius:8px;
+border-radius:10px;
+font-size:16px;
+font-weight:600;
 cursor:pointer;
+transition:0.2s;
 }
 
+/* YES */
+
 .yes{
-background:#4CAF50;
+background:#27ae60;
 color:white;
 }
+
+.yes:hover{
+background:#1e874b;
+transform:scale(1.05);
+}
+
+/* NO */
 
 .no{
 background:#e74c3c;
 color:white;
 }
 
-button:hover{
-opacity:0.9;
+.no:hover{
+background:#c0392b;
+transform:scale(1.05);
 }
 
 </style>
@@ -79,9 +110,11 @@ opacity:0.9;
 
 <body>
 
-<div class="app">
+<div class="card">
 
-<h2>🏏 Cricket Prediction Game</h2>
+<div class="title">
+🏏 Cricket Prediction Game
+</div>
 
 <div id="question">
 Waiting for host question...
@@ -127,9 +160,11 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-/* Listen for question */
-
 const questionRef = db.ref("currentQuestion");
+
+let timerInterval;
+
+/* Listen for question */
 
 questionRef.on("value", (snapshot) => {
 
@@ -145,7 +180,7 @@ startTimer(data.startTime);
 
 });
 
-let timerInterval;
+/* Timer */
 
 function startTimer(startTime){
 
@@ -167,13 +202,14 @@ clearInterval(timerInterval);
 
 }
 
-document.getElementById("timer").innerText = "Time left: " + remaining;
+document.getElementById("timer").innerText =
+"Time left: " + remaining;
 
 },1000);
 
 }
 
-/* Player answer */
+/* Answer */
 
 function answer(choice){
 

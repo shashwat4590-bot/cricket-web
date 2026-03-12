@@ -88,11 +88,17 @@ function send() {
     }
 
     function reveal(ans) {
-        questionRef.update({ 
-            result: ans,
-            status: "locked" 
-        });
-    }
+    // We update the existing question with the result
+    // and ensure the status is locked so no one can vote late
+    questionRef.update({ 
+        result: ans,
+        status: "locked" 
+    }).then(() => {
+        console.log("Result pushed: " + ans);
+    }).catch((err) => {
+        alert("Error pushing answer: " + err.message);
+    });
+}
 
     function nextQuestion() {
         index = (index + 1) % questions.length;

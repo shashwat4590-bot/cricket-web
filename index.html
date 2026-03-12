@@ -24,9 +24,8 @@
         button{flex:1;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:0.3s;}
         .yes{background:#2ed573;color:black;}
         .no{background:#ff4757;color:white;}
-        button:disabled{cursor:not-allowed;}
-        .correct{background:#2ed573 !important;color:black !important;transform: scale(1.05);}
-        .wrong{background:#333 !important;opacity:0.4;}
+        .correct{background:#2ed573 !important;color:black !important;transform: scale(1.05);opacity: 1 !important;}
+        .wrong{background:#333 !important;opacity:0.4 !important;color: #777 !important;}
         .locked-in{border: 3px solid white !important;}
     </style>
 </head>
@@ -42,7 +41,7 @@
         <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" class="team">
     </div>
     <div class="card">
-        <div id="question">Waiting for next ball...</div>
+        <div id="question">Waiting for host...</div>
         <div class="timer" id="timer">Ready</div>
         <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
         <div class="buttons">
@@ -73,47 +72,25 @@
 
     document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
 
-   /* Ensure this logic exists inside your questionRef.on("value") in index.html */
+    questionRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
 
-questionRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    
-    // If no data or host cleared the DB
-    if (!data) {
-        resetUI("Waiting for host...");
-        return;
-    }
-
-    // IMPORTANT: If a new question is pushed (result is null and status is open)
-    // and the player was previously stuck on a result, we reset everything.
-    if (data.status === "open" && data.result === null) {
-        enableButtons(); // This function clears colors and enables clicks
-        startTimer(data.endTime);
-    }
-
-    document.getElementById("question").innerText = data.question;
-
-    if (data.status === "locked") {
-        disableButtons();
-    }
-
-    if (data.result) {
-        revealResult(data.result);
-    }
-});
-
-        document.getElementById("question").innerText = data.question;
-
-        if (data.status === "open" && !hasVoted) {
-            enableButtons();
+        // 1. IF NEW QUESTION PUSHED (Result is null)
+        if (data.status === "open" && data.result === null) {
+            document.getElementById("question").innerText = data.question;
+            enableButtons(); 
             startTimer(data.endTime);
         }
 
-        if (data.status === "locked") {
+        // 2. IF MANUALLY LOCKED
+        if (data.status === "locked" && data.result === null) {
             disableButtons();
+            document.getElementById("timer").innerText = "Bets Locked!";
         }
 
-        if (data.result) {
+        // 3. IF RESULT REVEALED
+        if (data.result !== null) {
             revealResult(data.result);
         }
     });
@@ -160,14 +137,14 @@ questionRef.on("value", (snapshot) => {
             yesBtn.classList.add("wrong");
         }
 
+        // Only add points if player hasn't been rewarded yet for THIS question
         if (selectedChoice === correct) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             userScore += 100;
             localStorage.setItem("cricketScore", userScore);
             document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
+            selectedChoice = null; // Reset choice so they don't get points twice
         }
-        
-        selectedChoice = null; // Prevent double scoring
     }
 
     function disableButtons() {
@@ -176,17 +153,13 @@ questionRef.on("value", (snapshot) => {
 
     function enableButtons() {
         hasVoted = false;
+        selectedChoice = null;
         const buttons = document.querySelectorAll("button");
         buttons.forEach(b => {
             b.disabled = false;
             b.classList.remove("correct", "wrong", "locked-in");
             b.style.opacity = "1";
         });
-    }
-
-    function resetUI(msg) {
-        document.getElementById("question").innerText = msg;
-        enableButtons();
     }
 </script>
 </body>

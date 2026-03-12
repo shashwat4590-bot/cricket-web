@@ -20,9 +20,9 @@ font-family:Inter,system-ui,Arial;
 
 body{
 background:#0e1117;
-color:white;
 display:flex;
 justify-content:center;
+color:white;
 }
 
 /* APP */
@@ -36,21 +36,29 @@ background:#0e1117;
 /* HEADER */
 
 .header{
-padding:15px;
+padding:16px;
 font-size:18px;
 font-weight:600;
 border-bottom:1px solid #222;
 }
 
-/* MATCH BAR */
+/* MATCH HEADER */
 
-.match{
-padding:15px;
-background:#151a22;
+.match-header{
 display:flex;
-justify-content:space-between;
+justify-content:center;
+align-items:center;
+gap:20px;
+padding:20px;
+}
+
+.team{
+width:45px;
+}
+
+.vs{
 font-size:14px;
-border-bottom:1px solid #222;
+opacity:0.7;
 }
 
 /* CARD */
@@ -58,15 +66,16 @@ border-bottom:1px solid #222;
 .card{
 background:#151a22;
 margin:15px;
-padding:20px;
+padding:22px;
 border-radius:12px;
 }
 
 /* QUESTION */
 
 #question{
-font-size:18px;
+font-size:20px;
 margin-bottom:15px;
+line-height:1.4;
 }
 
 /* TIMER */
@@ -74,52 +83,64 @@ margin-bottom:15px;
 .timer{
 font-size:13px;
 color:#ff4757;
-margin-bottom:15px;
+margin-bottom:10px;
+}
+
+/* TIMER BAR */
+
+.timer-bar{
+height:6px;
+background:#333;
+border-radius:5px;
+margin-bottom:18px;
+overflow:hidden;
+}
+
+.timer-fill{
+height:100%;
+background:#ff4757;
+width:100%;
+transition:width 1s linear;
 }
 
 /* BUTTONS */
 
 .buttons{
 display:flex;
-gap:10px;
+gap:12px;
 }
 
 button{
 flex:1;
 padding:14px;
 border:none;
-border-radius:8px;
-font-size:15px;
+border-radius:10px;
+font-size:16px;
 font-weight:600;
 cursor:pointer;
+transition:0.2s;
 }
+
+/* YES */
 
 .yes{
 background:#2ed573;
 color:black;
 }
 
+.yes:hover{
+transform:translateY(-2px);
+}
+
+/* NO */
+
 .no{
 background:#ff4757;
 color:white;
 }
 
-/* NAV */
-
-.nav{
-position:fixed;
-bottom:0;
-width:420px;
-background:#151a22;
-display:flex;
-justify-content:space-around;
-padding:10px;
-border-top:1px solid #222;
-}
-
-.nav div{
-font-size:12px;
-opacity:0.7;
+.no:hover{
+transform:translateY(-2px);
 }
 
 </style>
@@ -134,9 +155,14 @@ opacity:0.7;
 🏏 Cricket Prediction
 </div>
 
-<div class="match">
-<div>CSK vs MI</div>
-<div>Live</div>
+<div class="match-header">
+
+<img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" class="team">
+
+<div class="vs">VS</div>
+
+<img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" class="team">
+
 </div>
 
 <div class="card">
@@ -147,6 +173,10 @@ Waiting for host question...
 
 <div class="timer" id="timer">
 Time left: 10
+</div>
+
+<div class="timer-bar">
+<div class="timer-fill" id="timerFill"></div>
 </div>
 
 <div class="buttons">
@@ -165,13 +195,6 @@ NO
 
 </div>
 
-<div class="nav">
-<div>Home</div>
-<div>Matches</div>
-<div>Leaderboard</div>
-<div>Profile</div>
-</div>
-
 <script>
 
 /* Firebase config */
@@ -179,21 +202,30 @@ NO
 const firebaseConfig = {
 
 apiKey:"PASTE_API_KEY",
+
 authDomain:"cricket-web-predict.firebaseapp.com",
+
 databaseURL:"https://cricket-web-predict-default-rtdb.firebaseio.com",
+
 projectId:"cricket-web-predict",
+
 storageBucket:"cricket-web-predict.appspot.com",
+
 messagingSenderId:"PASTE",
+
 appId:"PASTE"
 
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db=firebase.database();
 
 const questionRef=db.ref("currentQuestion");
 
 let timerInterval;
+
+/* Listen for question */
 
 questionRef.on("value",(snapshot)=>{
 
@@ -205,9 +237,13 @@ document.getElementById("question").innerText=data.question;
 
 startTimer(data.startTime);
 
+enableButtons();
+
 }
 
 });
+
+/* Timer */
 
 function startTimer(startTime){
 
@@ -224,19 +260,42 @@ let remaining=duration-elapsed;
 if(remaining<=0){
 
 remaining=0;
+
 clearInterval(timerInterval);
 
 }
 
 document.getElementById("timer").innerText="Time left: "+remaining;
 
+let percent=(remaining/duration)*100;
+
+document.getElementById("timerFill").style.width=percent+"%";
+
 },1000);
 
 }
 
+/* Answer */
+
 function answer(choice){
 
-alert("You chose: "+choice);
+document.querySelectorAll("button").forEach(btn=>{
+btn.disabled=true;
+btn.style.opacity="0.5";
+});
+
+alert("You selected: "+choice);
+
+}
+
+/* Re-enable buttons for next question */
+
+function enableButtons(){
+
+document.querySelectorAll("button").forEach(btn=>{
+btn.disabled=false;
+btn.style.opacity="1";
+});
 
 }
 

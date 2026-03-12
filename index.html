@@ -75,7 +75,6 @@ border-radius:12px;
 #question{
 font-size:20px;
 margin-bottom:15px;
-line-height:1.4;
 }
 
 /* TIMER */
@@ -121,26 +120,25 @@ cursor:pointer;
 transition:0.2s;
 }
 
-/* YES */
-
 .yes{
 background:#2ed573;
 color:black;
 }
-
-.yes:hover{
-transform:translateY(-2px);
-}
-
-/* NO */
 
 .no{
 background:#ff4757;
 color:white;
 }
 
-.no:hover{
-transform:translateY(-2px);
+/* RESULT COLORS */
+
+.correct{
+background:#2ed573 !important;
+}
+
+.wrong{
+background:#ff4757 !important;
+opacity:0.6;
 }
 
 </style>
@@ -181,11 +179,11 @@ Time left: 10
 
 <div class="buttons">
 
-<button class="yes" onclick="answer('YES')">
+<button id="yesBtn" class="yes" onclick="answer('YES')">
 YES
 </button>
 
-<button class="no" onclick="answer('NO')">
+<button id="noBtn" class="no" onclick="answer('NO')">
 NO
 </button>
 
@@ -202,17 +200,11 @@ NO
 const firebaseConfig = {
 
 apiKey:"PASTE_API_KEY",
-
 authDomain:"cricket-web-predict.firebaseapp.com",
-
 databaseURL:"https://cricket-web-predict-default-rtdb.firebaseio.com",
-
 projectId:"cricket-web-predict",
-
 storageBucket:"cricket-web-predict.appspot.com",
-
 messagingSenderId:"PASTE",
-
 appId:"PASTE"
 
 };
@@ -223,21 +215,29 @@ const db=firebase.database();
 
 const questionRef=db.ref("currentQuestion");
 
+let selectedAnswer=null;
+
 let timerInterval;
 
-/* Listen for question */
+/* Listen for updates */
 
 questionRef.on("value",(snapshot)=>{
 
 const data=snapshot.val();
 
-if(data){
+if(!data) return;
 
 document.getElementById("question").innerText=data.question;
 
 startTimer(data.startTime);
 
-enableButtons();
+resetButtons();
+
+/* Reveal correct answer */
+
+if(data.correct){
+
+showResult(data.correct);
 
 }
 
@@ -260,7 +260,6 @@ let remaining=duration-elapsed;
 if(remaining<=0){
 
 remaining=0;
-
 clearInterval(timerInterval);
 
 }
@@ -275,27 +274,48 @@ document.getElementById("timerFill").style.width=percent+"%";
 
 }
 
-/* Answer */
+/* Player answer */
 
 function answer(choice){
 
+selectedAnswer=choice;
+
 document.querySelectorAll("button").forEach(btn=>{
 btn.disabled=true;
-btn.style.opacity="0.5";
 });
-
-alert("You selected: "+choice);
 
 }
 
-/* Re-enable buttons for next question */
+/* Reset buttons */
 
-function enableButtons(){
+function resetButtons(){
+
+selectedAnswer=null;
+
+document.getElementById("yesBtn").classList.remove("correct","wrong");
+document.getElementById("noBtn").classList.remove("correct","wrong");
 
 document.querySelectorAll("button").forEach(btn=>{
 btn.disabled=false;
-btn.style.opacity="1";
 });
+
+}
+
+/* Show result */
+
+function showResult(correct){
+
+if(correct==="YES"){
+
+yesBtn.classList.add("correct");
+noBtn.classList.add("wrong");
+
+}else{
+
+noBtn.classList.add("correct");
+yesBtn.classList.add("wrong");
+
+}
 
 }
 

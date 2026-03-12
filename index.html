@@ -73,15 +73,30 @@
     document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
 
     questionRef.on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
+    const data = snapshot.val();
+    if (!data) return;
 
-        // 1. IF NEW QUESTION PUSHED (Result is null)
-        if (data.status === "open" && data.result === null) {
+    // 1. CHECK IF THIS IS A BRAND NEW QUESTION
+    // We know it's new if 'result' is missing OR explicitly null
+    const hasResult = data.hasOwnProperty('result') && data.result !== null;
+
+    if (!hasResult) {
+        // If there's no result yet, make sure the UI is ready for voting
+        if (data.status === "open") {
             document.getElementById("question").innerText = data.question;
             enableButtons(); 
             startTimer(data.endTime);
         }
+        
+        if (data.status === "locked") {
+            disableButtons();
+            document.getElementById("timer").innerText = "Bets Locked!";
+        }
+    } else {
+        // 2. IF A RESULT EXISTS, SHOW IT
+        revealResult(data.result);
+    }
+});
 
         // 2. IF MANUALLY LOCKED
         if (data.status === "locked" && data.result === null) {

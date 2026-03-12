@@ -1,194 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Cricket Prediction Game</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Firebase -->
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial;
-}
-
 body{
-background:#f2f3f7;
+font-family:Arial;
+background:#f2f4f8;
 display:flex;
 justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
 }
 
 .app{
-width:420px;
-min-height:100vh;
+width:380px;
 background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.15);
+text-align:center;
 }
 
-/* HEADER */
+h2{
+margin-bottom:20px;
+}
 
-.header{
-background:#0a5cff;
-color:white;
-padding:15px;
+#question{
 font-size:18px;
-font-weight:bold;
+margin-bottom:20px;
 }
 
-/* MATCH BAR */
-
-.match{
-background:#ff6a00;
-color:white;
-padding:12px;
-font-size:14px;
-}
-
-/* CARD */
-
-.card{
-background:white;
-margin:12px;
-padding:15px;
-border-radius:10px;
-box-shadow:0 2px 10px rgba(0,0,0,0.08);
-}
-
-.card-title{
-font-size:15px;
-font-weight:bold;
-margin-bottom:12px;
-}
-
-/* ROW */
-
-.row{
+.buttons{
 display:flex;
 justify-content:space-between;
-align-items:center;
-margin-top:10px;
 }
 
-/* TEAM */
-
-.team{
-font-size:14px;
-width:55%;
-}
-
-/* BUTTONS */
-
-.options{
-display:flex;
-gap:8px;
-}
-
-.btn{
-padding:10px 14px;
+button{
+width:45%;
+padding:12px;
+font-size:16px;
 border:none;
-border-radius:6px;
-font-weight:bold;
+border-radius:8px;
 cursor:pointer;
 }
 
 .yes{
-background:#69b7ff;
+background:#4CAF50;
 color:white;
 }
 
 .no{
-background:#ff9aa2;
+background:#e74c3c;
 color:white;
 }
 
-.btn:hover{
-opacity:0.85;
-}
-
-/* NAVBAR */
-
-.nav{
-position:fixed;
-bottom:0;
-width:420px;
-background:white;
-border-top:1px solid #ddd;
-display:flex;
-justify-content:space-around;
-padding:10px;
-}
-
-.nav-item{
-font-size:12px;
-color:#555;
+button:hover{
+opacity:0.9;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <div class="app">
 
-<div class="header">
-🏏 Cricket Prediction
+<h2>🏏 Cricket Prediction Game</h2>
+
+<div id="question">
+Waiting for host question...
 </div>
 
-<div class="match">
-Karachi Region Whites vs Bahawalpur Region
-</div>
+<div class="buttons">
 
-<div class="card">
+<button class="yes" onclick="answer('YES')">YES</button>
 
-<div class="card-title">
-Over 1.5 Runs off Delivery
-</div>
-
-<div class="row">
-
-<div class="team">
-Karachi Region Whites
-</div>
-
-<div class="options">
-<button class="btn yes">YES</button>
-<button class="btn no">NO</button>
-</div>
+<button class="no" onclick="answer('NO')">NO</button>
 
 </div>
 
 </div>
 
-<div class="card">
+<script>
 
-<div class="card-title">
-Over 3.5 Runs off Delivery
-</div>
+/* Firebase config (REPLACE WITH YOUR OWN) */
 
-<div class="row">
+const firebaseConfig = {
 
-<div class="team">
-Bahawalpur Region
-</div>
+apiKey: "PASTE_YOUR_API_KEY",
 
-<div class="options">
-<button class="btn yes">YES</button>
-<button class="btn no">NO</button>
-</div>
+authDomain: "cricket-web-predict.firebaseapp.com",
 
-</div>
+databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
 
-</div>
+projectId: "cricket-web-predict",
 
-</div>
+storageBucket: "cricket-web-predict.appspot.com",
 
-<div class="nav">
+messagingSenderId: "PASTE",
 
-<div class="nav-item">Home</div>
-<div class="nav-item">Matches</div>
-<div class="nav-item">Leaderboard</div>
-<div class="nav-item">Profile</div>
+appId: "PASTE"
 
-</div>
+};
+
+/* Initialize Firebase */
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+/* Listen for new question */
+
+const questionRef = db.ref("currentQuestion");
+
+questionRef.on("value", (snapshot) => {
+
+const data = snapshot.val();
+
+if(data){
+
+document.getElementById("question").innerText = data.question;
+
+}
+
+});
+
+/* Player answer */
+
+function answer(choice){
+
+alert("You selected: " + choice);
+
+}
+
+</script>
 
 </body>
 </html>

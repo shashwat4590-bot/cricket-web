@@ -1,57 +1,240 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Cricket Prediction - Player</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Live Predictor</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Arial;}
-        body{background:#0e1117;display:flex;justify-content:center;color:white;}
-        .app{width:420px;min-height:100vh;background:#0e1117;}
-        .header{padding:16px;font-size:18px;font-weight:600;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;}
-        #scoreDisplay{color:#2ed573;background:#1a212a;padding:4px 12px;border-radius:20px;font-size:14px;}
-        .match-header{display:flex;justify-content:center;align-items:center;gap:20px;padding:20px;}
-        .team{width:45px;}
-        .vs{font-size:14px;opacity:0.7;}
-        .card{background:#151a22;margin:15px;padding:22px;border-radius:12px;border:1px solid #222;}
-        #question{font-size:20px;margin-bottom:15px;min-height:50px;}
-        .timer{font-size:13px;color:#ff4757;margin-bottom:10px;}
-        .timer-bar{height:6px;background:#333;border-radius:5px;margin-bottom:18px;overflow:hidden;}
-        .timer-fill{height:100%;background:#ff4757;width:0%;transition:width 0.5s linear;}
-        .buttons{display:flex;gap:12px;}
-        button{flex:1;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:0.3s;}
-        .yes{background:#2ed573;color:black;}
-        .no{background:#ff4757;color:white;}
-        .correct{background:#2ed573 !important;color:black !important;transform: scale(1.05);opacity: 1 !important;}
-        .wrong{background:#333 !important;opacity:0.4 !important;color: #777 !important;}
-        .locked-in{border: 3px solid white !important;}
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #38bdf8;
+            --accent-success: #22c55e;
+            --accent-error: #ef4444;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+            color: var(--accent-primary);
+        }
+
+        #scoreDisplay {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--accent-primary);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        /* Match Banner */
+        .match-card {
+            margin: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .team-box { text-align: center; }
+        .team-box img { width: 55px; height: 55px; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        .team-box span { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-dim); }
+        .vs-badge { font-weight: 900; font-style: italic; color: var(--text-dim); opacity: 0.5; }
+
+        /* Prediction Card */
+        .prediction-area {
+            margin: 0 20px;
+            padding: 24px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #question {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 60px;
+        }
+
+        .timer-container { margin-bottom: 25px; }
+        .timer-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+        
+        .progress-bg {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            width: 0%;
+            transition: width 0.5s linear;
+        }
+
+        /* Action Buttons */
+        .btn-group { display: flex; gap: 12px; }
+        
+        .predict-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-yes { background: var(--accent-success); color: #052e16; }
+        .btn-no { background: var(--accent-error); color: #ffffff; }
+
+        .predict-btn:disabled { cursor: not-allowed; opacity: 0.3; }
+
+        /* Status States */
+        .locked-in {
+            outline: 3px solid white;
+            outline-offset: 2px;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .correct { 
+            background: var(--accent-success) !important; 
+            color: white !important;
+            opacity: 1 !important;
+            animation: pulse 1s infinite;
+        }
+        
+        .wrong { 
+            background: #334155 !important; 
+            opacity: 0.2 !important; 
+            color: #94a3b8 !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 30px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
-<div class="app">
-    <div class="header">
-        <span>🏏 Prediction</span>
-        <span id="scoreDisplay">Points: 0</span>
-    </div>
-    <div class="match-header">
-        <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" class="team">
-        <div class="vs">VS</div>
-        <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" class="team">
-    </div>
-    <div class="card">
-        <div id="question">Waiting for host...</div>
-        <div class="timer" id="timer">Ready</div>
-        <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
-        <div class="buttons">
-            <button id="yesBtn" class="yes" onclick="answer('YES')">YES</button>
-            <button id="noBtn" class="no" onclick="answer('NO')">NO</button>
+
+<div class="container">
+    <header>
+        <div class="logo">LIVEPREDICT</div>
+        <div id="scoreDisplay">0 PTS</div>
+    </header>
+
+    <div class="match-card">
+        <div class="team-box">
+            <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" alt="CSK">
+            <span>CSK</span>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="team-box">
+            <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" alt="MI">
+            <span>MI</span>
         </div>
     </div>
+
+    <div class="prediction-area">
+        <div id="question">Connecting to live feed...</div>
+        
+        <div class="timer-container">
+            <div class="timer-label">
+                <span>TIME REMAINING</span>
+                <span id="timerText">0s</span>
+            </div>
+            <div class="progress-bg">
+                <div class="progress-fill" id="timerFill"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="yesBtn" class="predict-btn btn-yes" onclick="answer('YES')">Yes</button>
+            <button id="noBtn" class="predict-btn btn-no" onclick="answer('NO')">No</button>
+        </div>
+    </div>
+
+    <footer>
+        POWERED BY REAL-TIME DATA
+    </footer>
 </div>
 
 <script>
+    // --- CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "PASTE_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -61,52 +244,43 @@
         messagingSenderId: "PASTE",
         appId: "PASTE"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const questionRef = db.ref("currentQuestion");
 
+    // --- APP STATE ---
     let userScore = parseInt(localStorage.getItem("cricketScore")) || 0;
     let hasVoted = false;
     let selectedChoice = null;
     let timerInterval;
 
-    document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
+    // Initialize UI
+    document.getElementById("scoreDisplay").innerText = userScore + " PTS";
 
+    // --- LIVE LISTENER ---
     questionRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
+        const data = snapshot.val();
+        if (!data) return;
 
-    // 1. CHECK IF THIS IS A BRAND NEW QUESTION
-    // We know it's new if 'result' is missing OR explicitly null
-    const hasResult = data.hasOwnProperty('result') && data.result !== null;
+        // Update Question Text Immediately
+        document.getElementById("question").innerText = data.question;
 
-    if (!hasResult) {
-        // If there's no result yet, make sure the UI is ready for voting
-        if (data.status === "open") {
-            document.getElementById("question").innerText = data.question;
-            enableButtons(); 
-            startTimer(data.endTime);
-        }
-        
-        if (data.status === "locked") {
-            disableButtons();
-            document.getElementById("timer").innerText = "Bets Locked!";
-        }
-    } else {
-        // 2. IF A RESULT EXISTS, SHOW IT
-        revealResult(data.result);
-    }
-});
+        const hasResult = data.hasOwnProperty('result') && data.result !== null;
 
-        // 2. IF MANUALLY LOCKED
-        if (data.status === "locked" && data.result === null) {
-            disableButtons();
-            document.getElementById("timer").innerText = "Bets Locked!";
-        }
-
-        // 3. IF RESULT REVEALED
-        if (data.result !== null) {
-            revealResult(data.result);
+        if (!hasResult) {
+            if (data.status === "open") {
+                // If the host just pushed a new question, the app resets
+                if (selectedChoice === null || data.endTime > Date.now() + 2000) {
+                    resetButtonsUI();
+                    startTimer(data.endTime);
+                }
+            } else if (data.status === "locked") {
+                lockButtons();
+                document.getElementById("timerText").innerText = "LOCKED";
+            }
+        } else {
+            handleResult(data.result);
         }
     });
 
@@ -116,11 +290,13 @@
             const now = Date.now();
             const diff = endTime - now;
             const seconds = Math.max(0, Math.floor(diff / 1000));
-            document.getElementById("timer").innerText = "Time left: " + seconds + "s";
+            
+            document.getElementById("timerText").innerText = seconds + "s";
             document.getElementById("timerFill").style.width = (seconds * 10) + "%";
+
             if (seconds <= 0) {
                 clearInterval(timerInterval);
-                disableButtons();
+                lockButtons();
             }
         }, 1000);
     }
@@ -136,13 +312,14 @@
         const other = choice === 'YES' ? document.getElementById("noBtn") : document.getElementById("yesBtn");
         
         btn.classList.add("locked-in");
-        other.style.opacity = "0.3";
-        disableButtons();
+        other.style.opacity = "0.2";
+        lockButtons();
     }
 
-    function revealResult(correct) {
+    function handleResult(correct) {
         const yesBtn = document.getElementById("yesBtn");
         const noBtn = document.getElementById("noBtn");
+        clearInterval(timerInterval);
 
         if (correct === "YES") {
             yesBtn.classList.add("correct");
@@ -152,30 +329,38 @@
             yesBtn.classList.add("wrong");
         }
 
-        // Only add points if player hasn't been rewarded yet for THIS question
+        // Win logic
         if (selectedChoice === correct) {
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            confetti({
+                particleCount: 120,
+                spread: 70,
+                origin: { y: 0.7 },
+                colors: ['#38bdf8', '#22c55e', '#ffffff']
+            });
             userScore += 100;
             localStorage.setItem("cricketScore", userScore);
-            document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
-            selectedChoice = null; // Reset choice so they don't get points twice
+            document.getElementById("scoreDisplay").innerText = userScore + " PTS";
+            selectedChoice = "PROCESSED"; // Prevent multiple scoring
         }
+        lockButtons();
     }
 
-    function disableButtons() {
-        document.querySelectorAll("button").forEach(b => b.disabled = true);
+    function lockButtons() {
+        document.getElementById("yesBtn").disabled = true;
+        document.getElementById("noBtn").disabled = true;
     }
 
-    function enableButtons() {
+    function resetButtonsUI() {
         hasVoted = false;
         selectedChoice = null;
-        const buttons = document.querySelectorAll("button");
-        buttons.forEach(b => {
+        const btns = [document.getElementById("yesBtn"), document.getElementById("noBtn")];
+        btns.forEach(b => {
             b.disabled = false;
             b.classList.remove("correct", "wrong", "locked-in");
             b.style.opacity = "1";
         });
     }
 </script>
+
 </body>
 </html>

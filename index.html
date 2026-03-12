@@ -73,12 +73,34 @@
 
     document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
 
-    questionRef.on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            resetUI("Waiting for host...");
-            return;
-        }
+   /* Ensure this logic exists inside your questionRef.on("value") in index.html */
+
+questionRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    
+    // If no data or host cleared the DB
+    if (!data) {
+        resetUI("Waiting for host...");
+        return;
+    }
+
+    // IMPORTANT: If a new question is pushed (result is null and status is open)
+    // and the player was previously stuck on a result, we reset everything.
+    if (data.status === "open" && data.result === null) {
+        enableButtons(); // This function clears colors and enables clicks
+        startTimer(data.endTime);
+    }
+
+    document.getElementById("question").innerText = data.question;
+
+    if (data.status === "locked") {
+        disableButtons();
+    }
+
+    if (data.result) {
+        revealResult(data.result);
+    }
+});
 
         document.getElementById("question").innerText = data.question;
 

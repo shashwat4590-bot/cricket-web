@@ -1,325 +1,171 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Cricket Prediction</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Inter,system-ui,Arial;
-}
-
-body{
-background:#0e1117;
-display:flex;
-justify-content:center;
-color:white;
-}
-
-/* APP */
-
-.app{
-width:420px;
-min-height:100vh;
-background:#0e1117;
-}
-
-/* HEADER */
-
-.header{
-padding:16px;
-font-size:18px;
-font-weight:600;
-border-bottom:1px solid #222;
-}
-
-/* MATCH HEADER */
-
-.match-header{
-display:flex;
-justify-content:center;
-align-items:center;
-gap:20px;
-padding:20px;
-}
-
-.team{
-width:45px;
-}
-
-.vs{
-font-size:14px;
-opacity:0.7;
-}
-
-/* CARD */
-
-.card{
-background:#151a22;
-margin:15px;
-padding:22px;
-border-radius:12px;
-}
-
-/* QUESTION */
-
-#question{
-font-size:20px;
-margin-bottom:15px;
-}
-
-/* TIMER */
-
-.timer{
-font-size:13px;
-color:#ff4757;
-margin-bottom:10px;
-}
-
-/* TIMER BAR */
-
-.timer-bar{
-height:6px;
-background:#333;
-border-radius:5px;
-margin-bottom:18px;
-overflow:hidden;
-}
-
-.timer-fill{
-height:100%;
-background:#ff4757;
-width:100%;
-transition:width 1s linear;
-}
-
-/* BUTTONS */
-
-.buttons{
-display:flex;
-gap:12px;
-}
-
-button{
-flex:1;
-padding:14px;
-border:none;
-border-radius:10px;
-font-size:16px;
-font-weight:600;
-cursor:pointer;
-transition:0.2s;
-}
-
-.yes{
-background:#2ed573;
-color:black;
-}
-
-.no{
-background:#ff4757;
-color:white;
-}
-
-/* RESULT COLORS */
-
-.correct{
-background:#2ed573 !important;
-}
-
-.wrong{
-background:#ff4757 !important;
-opacity:0.6;
-}
-
-</style>
-
+    <title>Cricket Prediction - Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,system-ui,Arial;}
+        body{background:#0e1117;display:flex;justify-content:center;color:white;}
+        .app{width:420px;min-height:100vh;background:#0e1117;}
+        .header{padding:16px;font-size:18px;font-weight:600;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;}
+        #scoreDisplay{color:#2ed573;background:#1a212a;padding:4px 12px;border-radius:20px;font-size:14px;}
+        .match-header{display:flex;justify-content:center;align-items:center;gap:20px;padding:20px;}
+        .team{width:45px;}
+        .vs{font-size:14px;opacity:0.7;}
+        .card{background:#151a22;margin:15px;padding:22px;border-radius:12px;border:1px solid #222;}
+        #question{font-size:20px;margin-bottom:15px;min-height:50px;}
+        .timer{font-size:13px;color:#ff4757;margin-bottom:10px;}
+        .timer-bar{height:6px;background:#333;border-radius:5px;margin-bottom:18px;overflow:hidden;}
+        .timer-fill{height:100%;background:#ff4757;width:0%;transition:width 0.5s linear;}
+        .buttons{display:flex;gap:12px;}
+        button{flex:1;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:0.3s;}
+        .yes{background:#2ed573;color:black;}
+        .no{background:#ff4757;color:white;}
+        button:disabled{cursor:not-allowed;}
+        .correct{background:#2ed573 !important;color:black !important;transform: scale(1.05);}
+        .wrong{background:#333 !important;opacity:0.4;}
+        .locked-in{border: 3px solid white !important;}
+    </style>
 </head>
-
 <body>
-
 <div class="app">
-
-<div class="header">
-🏏 Cricket Prediction
-</div>
-
-<div class="match-header">
-
-<img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" class="team">
-
-<div class="vs">VS</div>
-
-<img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" class="team">
-
-</div>
-
-<div class="card">
-
-<div id="question">
-Waiting for host question...
-</div>
-
-<div class="timer" id="timer">
-Time left: 10
-</div>
-
-<div class="timer-bar">
-<div class="timer-fill" id="timerFill"></div>
-</div>
-
-<div class="buttons">
-
-<button id="yesBtn" class="yes" onclick="answer('YES')">
-YES
-</button>
-
-<button id="noBtn" class="no" onclick="answer('NO')">
-NO
-</button>
-
-</div>
-
-</div>
-
+    <div class="header">
+        <span>🏏 Prediction</span>
+        <span id="scoreDisplay">Points: 0</span>
+    </div>
+    <div class="match-header">
+        <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" class="team">
+        <div class="vs">VS</div>
+        <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" class="team">
+    </div>
+    <div class="card">
+        <div id="question">Waiting for next ball...</div>
+        <div class="timer" id="timer">Ready</div>
+        <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+        <div class="buttons">
+            <button id="yesBtn" class="yes" onclick="answer('YES')">YES</button>
+            <button id="noBtn" class="no" onclick="answer('NO')">NO</button>
+        </div>
+    </div>
 </div>
 
 <script>
+    const firebaseConfig = {
+        apiKey: "PASTE_API_KEY",
+        authDomain: "cricket-web-predict.firebaseapp.com",
+        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
+        projectId: "cricket-web-predict",
+        storageBucket: "cricket-web-predict.appspot.com",
+        messagingSenderId: "PASTE",
+        appId: "PASTE"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const questionRef = db.ref("currentQuestion");
 
-/* Firebase config */
+    let userScore = parseInt(localStorage.getItem("cricketScore")) || 0;
+    let hasVoted = false;
+    let selectedChoice = null;
+    let timerInterval;
 
-const firebaseConfig = {
+    document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
 
-apiKey:"PASTE_API_KEY",
-authDomain:"cricket-web-predict.firebaseapp.com",
-databaseURL:"https://cricket-web-predict-default-rtdb.firebaseio.com",
-projectId:"cricket-web-predict",
-storageBucket:"cricket-web-predict.appspot.com",
-messagingSenderId:"PASTE",
-appId:"PASTE"
+    questionRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            resetUI("Waiting for host...");
+            return;
+        }
 
-};
+        document.getElementById("question").innerText = data.question;
 
-firebase.initializeApp(firebaseConfig);
+        if (data.status === "open" && !hasVoted) {
+            enableButtons();
+            startTimer(data.endTime);
+        }
 
-const db=firebase.database();
+        if (data.status === "locked") {
+            disableButtons();
+        }
 
-const questionRef=db.ref("currentQuestion");
+        if (data.result) {
+            revealResult(data.result);
+        }
+    });
 
-let selectedAnswer=null;
+    function startTimer(endTime) {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const now = Date.now();
+            const diff = endTime - now;
+            const seconds = Math.max(0, Math.floor(diff / 1000));
+            document.getElementById("timer").innerText = "Time left: " + seconds + "s";
+            document.getElementById("timerFill").style.width = (seconds * 10) + "%";
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+                disableButtons();
+            }
+        }, 1000);
+    }
 
-let timerInterval;
+    function answer(choice) {
+        if (hasVoted) return;
+        if (navigator.vibrate) navigator.vibrate(50);
+        
+        hasVoted = true;
+        selectedChoice = choice;
+        
+        const btn = choice === 'YES' ? document.getElementById("yesBtn") : document.getElementById("noBtn");
+        const other = choice === 'YES' ? document.getElementById("noBtn") : document.getElementById("yesBtn");
+        
+        btn.classList.add("locked-in");
+        other.style.opacity = "0.3";
+        disableButtons();
+    }
 
-/* Listen for updates */
+    function revealResult(correct) {
+        const yesBtn = document.getElementById("yesBtn");
+        const noBtn = document.getElementById("noBtn");
 
-questionRef.on("value",(snapshot)=>{
+        if (correct === "YES") {
+            yesBtn.classList.add("correct");
+            noBtn.classList.add("wrong");
+        } else {
+            noBtn.classList.add("correct");
+            yesBtn.classList.add("wrong");
+        }
 
-const data=snapshot.val();
+        if (selectedChoice === correct) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            userScore += 100;
+            localStorage.setItem("cricketScore", userScore);
+            document.getElementById("scoreDisplay").innerText = "Points: " + userScore;
+        }
+        
+        selectedChoice = null; // Prevent double scoring
+    }
 
-if(!data) return;
+    function disableButtons() {
+        document.querySelectorAll("button").forEach(b => b.disabled = true);
+    }
 
-document.getElementById("question").innerText=data.question;
+    function enableButtons() {
+        hasVoted = false;
+        const buttons = document.querySelectorAll("button");
+        buttons.forEach(b => {
+            b.disabled = false;
+            b.classList.remove("correct", "wrong", "locked-in");
+            b.style.opacity = "1";
+        });
+    }
 
-startTimer(data.startTime);
-
-resetButtons();
-
-/* Reveal correct answer */
-
-if(data.correct){
-
-showResult(data.correct);
-
-}
-
-});
-
-/* Timer */
-
-function startTimer(startTime){
-
-clearInterval(timerInterval);
-
-let duration=10;
-
-timerInterval=setInterval(()=>{
-
-let elapsed=Math.floor((Date.now()-startTime)/1000);
-
-let remaining=duration-elapsed;
-
-if(remaining<=0){
-
-remaining=0;
-clearInterval(timerInterval);
-
-}
-
-document.getElementById("timer").innerText="Time left: "+remaining;
-
-let percent=(remaining/duration)*100;
-
-document.getElementById("timerFill").style.width=percent+"%";
-
-},1000);
-
-}
-
-/* Player answer */
-
-function answer(choice){
-
-selectedAnswer=choice;
-
-document.querySelectorAll("button").forEach(btn=>{
-btn.disabled=true;
-});
-
-}
-
-/* Reset buttons */
-
-function resetButtons(){
-
-selectedAnswer=null;
-
-document.getElementById("yesBtn").classList.remove("correct","wrong");
-document.getElementById("noBtn").classList.remove("correct","wrong");
-
-document.querySelectorAll("button").forEach(btn=>{
-btn.disabled=false;
-});
-
-}
-
-/* Show result */
-
-function showResult(correct){
-
-if(correct==="YES"){
-
-yesBtn.classList.add("correct");
-noBtn.classList.add("wrong");
-
-}else{
-
-noBtn.classList.add("correct");
-yesBtn.classList.add("wrong");
-
-}
-
-}
-
+    function resetUI(msg) {
+        document.getElementById("question").innerText = msg;
+        enableButtons();
+    }
 </script>
-
 </body>
 </html>

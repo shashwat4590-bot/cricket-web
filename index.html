@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Cricket Prediction Game</title>
+<title>Cricket Prediction</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -12,68 +12,81 @@
 <style>
 
 *{
+margin:0;
+padding:0;
 box-sizing:border-box;
-font-family: "Segoe UI", Arial;
+font-family:Inter, system-ui, Arial;
 }
 
 body{
-margin:0;
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+background:radial-gradient(circle at top,#1a2a6c,#0f2027);
+color:white;
 }
 
-/* Card */
+/* Main App */
 
-.card{
+.app{
 width:420px;
-background:white;
-border-radius:16px;
 padding:30px;
-box-shadow:0 15px 40px rgba(0,0,0,0.25);
-text-align:center;
+border-radius:20px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(12px);
+box-shadow:0 20px 50px rgba(0,0,0,0.5);
 }
 
-/* Title */
+/* Header */
 
-.title{
-font-size:22px;
-font-weight:600;
-margin-bottom:10px;
+.header{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+font-size:14px;
+opacity:0.8;
 }
 
 /* Question */
 
 #question{
-font-size:18px;
-margin-top:15px;
-margin-bottom:15px;
-color:#333;
+font-size:22px;
+font-weight:600;
+line-height:1.4;
+margin-bottom:25px;
 }
 
-/* Timer */
+/* Timer bar */
 
-#timer{
-font-size:15px;
-color:#ff4d4d;
-margin-bottom:20px;
-font-weight:600;
+.timer-bar{
+height:6px;
+width:100%;
+background:#333;
+border-radius:5px;
+overflow:hidden;
+margin-bottom:25px;
+}
+
+.timer-fill{
+height:100%;
+width:100%;
+background:#ff4757;
+transition:width 1s linear;
 }
 
 /* Buttons */
 
 .buttons{
-display:flex;
+display:grid;
+grid-template-columns:1fr 1fr;
 gap:15px;
 }
 
 button{
-flex:1;
-padding:14px;
+padding:18px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 font-size:16px;
 font-weight:600;
 cursor:pointer;
@@ -83,25 +96,25 @@ transition:0.2s;
 /* YES */
 
 .yes{
-background:#27ae60;
-color:white;
+background:#2ed573;
+color:black;
 }
 
 .yes:hover{
-background:#1e874b;
-transform:scale(1.05);
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(0,0,0,0.3);
 }
 
 /* NO */
 
 .no{
-background:#e74c3c;
+background:#ff4757;
 color:white;
 }
 
 .no:hover{
-background:#c0392b;
-transform:scale(1.05);
+transform:translateY(-3px);
+box-shadow:0 10px 20px rgba(0,0,0,0.3);
 }
 
 </style>
@@ -110,25 +123,30 @@ transform:scale(1.05);
 
 <body>
 
-<div class="card">
+<div class="app">
 
-<div class="title">
-🏏 Cricket Prediction Game
+<div class="header">
+<div>🏏 Live Prediction</div>
+<div id="timerText">10s</div>
 </div>
 
 <div id="question">
 Waiting for host question...
 </div>
 
-<div id="timer">
-Time left: 10
+<div class="timer-bar">
+<div class="timer-fill" id="timerFill"></div>
 </div>
 
 <div class="buttons">
 
-<button class="yes" onclick="answer('YES')">YES</button>
+<button class="yes" onclick="answer('YES')">
+YES
+</button>
 
-<button class="no" onclick="answer('NO')">NO</button>
+<button class="no" onclick="answer('NO')">
+NO
+</button>
 
 </div>
 
@@ -140,39 +158,32 @@ Time left: 10
 
 const firebaseConfig = {
 
-apiKey: "PASTE_YOUR_API_KEY",
-
-authDomain: "cricket-web-predict.firebaseapp.com",
-
-databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
-
-projectId: "cricket-web-predict",
-
-storageBucket: "cricket-web-predict.appspot.com",
-
-messagingSenderId: "PASTE",
-
-appId: "PASTE"
+apiKey:"PASTE_API_KEY",
+authDomain:"cricket-web-predict.firebaseapp.com",
+databaseURL:"https://cricket-web-predict-default-rtdb.firebaseio.com",
+projectId:"cricket-web-predict",
+storageBucket:"cricket-web-predict.appspot.com",
+messagingSenderId:"PASTE",
+appId:"PASTE"
 
 };
 
 firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-const db = firebase.database();
-
-const questionRef = db.ref("currentQuestion");
+const questionRef=db.ref("currentQuestion");
 
 let timerInterval;
 
 /* Listen for question */
 
-questionRef.on("value", (snapshot) => {
+questionRef.on("value",(snapshot)=>{
 
-const data = snapshot.val();
+const data=snapshot.val();
 
 if(data){
 
-document.getElementById("question").innerText = data.question;
+document.getElementById("question").innerText=data.question;
 
 startTimer(data.startTime);
 
@@ -186,24 +197,26 @@ function startTimer(startTime){
 
 clearInterval(timerInterval);
 
-let duration = 10;
+let duration=10;
 
-timerInterval = setInterval(()=>{
+timerInterval=setInterval(()=>{
 
-let elapsed = Math.floor((Date.now() - startTime)/1000);
+let elapsed=Math.floor((Date.now()-startTime)/1000);
 
-let remaining = duration - elapsed;
+let remaining=duration-elapsed;
 
-if(remaining <= 0){
+if(remaining<=0){
 
-remaining = 0;
-
+remaining=0;
 clearInterval(timerInterval);
 
 }
 
-document.getElementById("timer").innerText =
-"Time left: " + remaining;
+document.getElementById("timerText").innerText=remaining+"s";
+
+let percent=(remaining/duration)*100;
+
+document.getElementById("timerFill").style.width=percent+"%";
 
 },1000);
 
@@ -213,7 +226,7 @@ document.getElementById("timer").innerText =
 
 function answer(choice){
 
-alert("You selected: " + choice);
+alert("You chose: "+choice);
 
 }
 

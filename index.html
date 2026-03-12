@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Cricket Prediction</title>
+<title>Cricket Prediction Game</title>
 
 <style>
 
@@ -13,33 +13,34 @@ font-family:Arial;
 }
 
 body{
-background:#f2f4f8;
+background:#f2f3f7;
 display:flex;
 justify-content:center;
 }
 
 .app{
 width:420px;
-background:white;
 min-height:100vh;
+background:white;
 }
 
 /* HEADER */
 
 .header{
-background:#ff6a00;
+background:#0a5cff;
 color:white;
 padding:15px;
+font-size:18px;
 font-weight:bold;
 }
 
-/* MATCH TITLE */
+/* MATCH BAR */
 
 .match{
-padding:15px;
-background:white;
-border-bottom:1px solid #ddd;
-font-size:16px;
+background:#ff6a00;
+color:white;
+padding:12px;
+font-size:14px;
 }
 
 /* CARD */
@@ -48,11 +49,12 @@ font-size:16px;
 background:white;
 margin:12px;
 padding:15px;
-border-radius:12px;
-box-shadow:0 3px 10px rgba(0,0,0,0.08);
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
 }
 
 .card-title{
+font-size:15px;
 font-weight:bold;
 margin-bottom:12px;
 }
@@ -69,27 +71,27 @@ margin-top:10px;
 /* TEAM */
 
 .team{
-width:60%;
 font-size:14px;
+width:55%;
 }
 
 /* BUTTONS */
 
 .options{
 display:flex;
-gap:10px;
+gap:8px;
 }
 
 .btn{
 padding:10px 14px;
-border-radius:8px;
 border:none;
+border-radius:6px;
 font-weight:bold;
 cursor:pointer;
 }
 
 .yes{
-background:#6bb6ff;
+background:#69b7ff;
 color:white;
 }
 
@@ -100,6 +102,24 @@ color:white;
 
 .btn:hover{
 opacity:0.85;
+}
+
+/* NAVBAR */
+
+.nav{
+position:fixed;
+bottom:0;
+width:420px;
+background:white;
+border-top:1px solid #ddd;
+display:flex;
+justify-content:space-around;
+padding:10px;
+}
+
+.nav-item{
+font-size:12px;
+color:#555;
 }
 
 </style>
@@ -130,21 +150,8 @@ Karachi Region Whites
 </div>
 
 <div class="options">
-<button class="btn yes">Yes</button>
-<button class="btn no">No</button>
-</div>
-
-</div>
-
-<div class="row">
-
-<div class="team">
-Bahawalpur Region
-</div>
-
-<div class="options">
-<button class="btn yes">Yes</button>
-<button class="btn no">No</button>
+<button class="btn yes">YES</button>
+<button class="btn no">NO</button>
 </div>
 
 </div>
@@ -160,30 +167,26 @@ Over 3.5 Runs off Delivery
 <div class="row">
 
 <div class="team">
-Karachi Region Whites
-</div>
-
-<div class="options">
-<button class="btn yes">Yes</button>
-<button class="btn no">No</button>
-</div>
-
-</div>
-
-<div class="row">
-
-<div class="team">
 Bahawalpur Region
 </div>
 
 <div class="options">
-<button class="btn yes">Yes</button>
-<button class="btn no">No</button>
+<button class="btn yes">YES</button>
+<button class="btn no">NO</button>
 </div>
 
 </div>
 
 </div>
+
+</div>
+
+<div class="nav">
+
+<div class="nav-item">Home</div>
+<div class="nav-item">Matches</div>
+<div class="nav-item">Leaderboard</div>
+<div class="nav-item">Profile</div>
 
 </div>
 

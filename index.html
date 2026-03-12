@@ -15,106 +15,111 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:Inter, system-ui, Arial;
+font-family:Inter,system-ui,Arial;
 }
 
 body{
-height:100vh;
+background:#0e1117;
+color:white;
 display:flex;
 justify-content:center;
-align-items:center;
-background:radial-gradient(circle at top,#1a2a6c,#0f2027);
-color:white;
 }
 
-/* Main App */
+/* APP */
 
 .app{
 width:420px;
-padding:30px;
-border-radius:20px;
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(12px);
-box-shadow:0 20px 50px rgba(0,0,0,0.5);
+min-height:100vh;
+background:#0e1117;
 }
 
-/* Header */
+/* HEADER */
 
 .header{
+padding:15px;
+font-size:18px;
+font-weight:600;
+border-bottom:1px solid #222;
+}
+
+/* MATCH BAR */
+
+.match{
+padding:15px;
+background:#151a22;
 display:flex;
 justify-content:space-between;
-margin-bottom:20px;
 font-size:14px;
-opacity:0.8;
+border-bottom:1px solid #222;
 }
 
-/* Question */
+/* CARD */
+
+.card{
+background:#151a22;
+margin:15px;
+padding:20px;
+border-radius:12px;
+}
+
+/* QUESTION */
 
 #question{
-font-size:22px;
-font-weight:600;
-line-height:1.4;
-margin-bottom:25px;
+font-size:18px;
+margin-bottom:15px;
 }
 
-/* Timer bar */
+/* TIMER */
 
-.timer-bar{
-height:6px;
-width:100%;
-background:#333;
-border-radius:5px;
-overflow:hidden;
-margin-bottom:25px;
+.timer{
+font-size:13px;
+color:#ff4757;
+margin-bottom:15px;
 }
 
-.timer-fill{
-height:100%;
-width:100%;
-background:#ff4757;
-transition:width 1s linear;
-}
-
-/* Buttons */
+/* BUTTONS */
 
 .buttons{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
+display:flex;
+gap:10px;
 }
 
 button{
-padding:18px;
+flex:1;
+padding:14px;
 border:none;
-border-radius:12px;
-font-size:16px;
+border-radius:8px;
+font-size:15px;
 font-weight:600;
 cursor:pointer;
-transition:0.2s;
 }
-
-/* YES */
 
 .yes{
 background:#2ed573;
 color:black;
 }
 
-.yes:hover{
-transform:translateY(-3px);
-box-shadow:0 10px 20px rgba(0,0,0,0.3);
-}
-
-/* NO */
-
 .no{
 background:#ff4757;
 color:white;
 }
 
-.no:hover{
-transform:translateY(-3px);
-box-shadow:0 10px 20px rgba(0,0,0,0.3);
+/* NAV */
+
+.nav{
+position:fixed;
+bottom:0;
+width:420px;
+background:#151a22;
+display:flex;
+justify-content:space-around;
+padding:10px;
+border-top:1px solid #222;
+}
+
+.nav div{
+font-size:12px;
+opacity:0.7;
 }
 
 </style>
@@ -126,16 +131,22 @@ box-shadow:0 10px 20px rgba(0,0,0,0.3);
 <div class="app">
 
 <div class="header">
-<div>🏏 Live Prediction</div>
-<div id="timerText">10s</div>
+🏏 Cricket Prediction
 </div>
+
+<div class="match">
+<div>CSK vs MI</div>
+<div>Live</div>
+</div>
+
+<div class="card">
 
 <div id="question">
 Waiting for host question...
 </div>
 
-<div class="timer-bar">
-<div class="timer-fill" id="timerFill"></div>
+<div class="timer" id="timer">
+Time left: 10
 </div>
 
 <div class="buttons">
@@ -150,6 +161,15 @@ NO
 
 </div>
 
+</div>
+
+</div>
+
+<div class="nav">
+<div>Home</div>
+<div>Matches</div>
+<div>Leaderboard</div>
+<div>Profile</div>
 </div>
 
 <script>
@@ -175,8 +195,6 @@ const questionRef=db.ref("currentQuestion");
 
 let timerInterval;
 
-/* Listen for question */
-
 questionRef.on("value",(snapshot)=>{
 
 const data=snapshot.val();
@@ -190,8 +208,6 @@ startTimer(data.startTime);
 }
 
 });
-
-/* Timer */
 
 function startTimer(startTime){
 
@@ -212,17 +228,11 @@ clearInterval(timerInterval);
 
 }
 
-document.getElementById("timerText").innerText=remaining+"s";
-
-let percent=(remaining/duration)*100;
-
-document.getElementById("timerFill").style.width=percent+"%";
+document.getElementById("timer").innerText="Time left: "+remaining;
 
 },1000);
 
 }
-
-/* Answer */
 
 function answer(choice){
 

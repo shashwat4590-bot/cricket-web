@@ -1,45 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Host Control Panel</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Command Center</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
-        *{box-sizing:border-box;font-family:Inter,system-ui,Arial;}
-        body{margin:0;background:#0e1117;color:white;display:flex;justify-content:center;align-items:center;height:100vh;}
-        .panel{width:420px;background:#151a22;padding:25px;border-radius:12px;border:1px solid #333;}
-        .title{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-        #live-status{font-size:12px;color:#2ed573;background:#000;padding:4px 8px;border-radius:4px;}
-        .current{font-size:18px;margin:20px 0;padding:15px;background:#0e1117;border-radius:8px;border-left:4px solid #1e90ff;}
-        button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;}
-        .send{background:#2ed573;color:black;}
-        .lock{background:#ffa502;color:black;}
-        .next{background:#1e90ff;color:white;}
-        .correctYes{background:#2ed573;color:black;width:48%;display:inline-block;}
-        .correctNo{background:#ff4757;color:white;width:48%;display:inline-block;}
-        button:active{transform:scale(0.96);}
+        :root {
+            --bg: #020617;
+            --panel: #1e293b;
+            --accent: #38bdf8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .panel {
+            width: 100%;
+            max-width: 450px;
+            background: var(--panel);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        /* Status Bar */
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        #status-pill {
+            padding: 6px 12px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.05);
+            color: #94a3b8;
+        }
+
+        .status-online { background: rgba(34, 197, 94, 0.1) !important; color: var(--success) !important; border: 1px solid var(--success); }
+        .status-locked { background: rgba(245, 158, 11, 0.1) !important; color: var(--warning) !important; border: 1px solid var(--warning); }
+
+        /* Question Display */
+        .queue-label { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; display: block; }
+        
+        .current-question-box {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Controls */
+        .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-push { background: var(--success); color: #052e16; grid-column: span 2; font-size: 1rem; }
+        .btn-lock { background: var(--warning); color: #451a03; }
+        .btn-next { background: var(--accent); color: #082f49; }
+        
+        .result-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-res-yes { background: #1e293b; border: 2px solid var(--success); color: var(--success); flex: 1; }
+        .btn-res-no { background: #1e293b; border: 2px solid var(--danger); color: var(--danger); flex: 1; }
+
+        button:active { transform: scale(0.96); opacity: 0.8; }
+        
+        .log-text {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
 <div class="panel">
-    <div class="title">
-        <span>🎮 Host Panel</span>
-        <span id="live-status">Ready</span>
+    <div class="status-header">
+        <h2 style="font-size: 1.2rem;">Control Panel</h2>
+        <div id="status-pill">Standby</div>
     </div>
-    <div id="currentQuestion" class="current">Boundary on next ball?</div>
-    
-    <button class="send" onclick="send()">🚀 PUSH QUESTION</button>
-    <button class="lock" onclick="lock()">🔒 LOCK BETS</button>
-    <button class="next" onclick="nextQuestion()">⏭️ NEXT IN LIST</button>
-    
-    <div style="margin-top:15px; display:flex; justify-content:space-between;">
-        <button class="correctYes" onclick="reveal('YES')">Reveal YES</button>
-        <button class="correctNo" onclick="reveal('NO')">Reveal NO</button>
+
+    <span class="queue-label">UP NEXT IN QUEUE</span>
+    <div id="displayQ" class="current-question-box">Next Ball > 1.5 runs?</div>
+
+    <div class="control-grid">
+        <button class="btn-push" onclick="pushQuestion()">🚀 Push to Live</button>
+        <button class="btn-lock" onclick="lockBets()">🔒 Lock Bets</button>
+        <button class="btn-next" onclick="rotateQuestion()">⏭️ Queue Next</button>
     </div>
+
+    <div class="result-section">
+        <button class="btn-res-yes" onclick="reveal('YES')">Correct: YES</button>
+        <button class="btn-res-no" onclick="reveal('NO')">Correct: NO</button>
+    </div>
+
+    <div class="log-text" id="log">System Ready. Awaiting Command.</div>
 </div>
 
 <script>
+    // --- CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "PASTE_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -49,6 +154,7 @@
         messagingSenderId: "PASTE",
         appId: "PASTE"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const questionRef = db.ref("currentQuestion");
@@ -58,26 +164,27 @@
         "Next ball > 1.5 runs?",
         "Wicket this over?",
         "Dot ball next delivery?",
-        "Will there be a Wide?"
+        "Will there be a Wide ball?",
+        "Batsman to hit a Six?",
+        "Score > 10 runs this over?"
     ];
-    let index = 0;
+    let qIndex = 0;
 
-    function send() {
-        // .set() replaces everything at this node, clearing the old result
+    function pushQuestion() {
         questionRef.set({
-            question: questions[index],
+            question: questions[qIndex],
             status: "open",
-            endTime: Date.now() + 10500, 
+            endTime: Date.now() + 10500,
             result: null
         });
-        document.getElementById("live-status").innerText = "LIVE NOW";
-        document.getElementById("live-status").style.color = "#2ed573";
+        updateStatus("Live Now", "status-online");
+        logAction("Pushed: " + questions[qIndex]);
     }
 
-    function lock() {
+    function lockBets() {
         questionRef.update({ status: "locked" });
-        document.getElementById("live-status").innerText = "LOCKED";
-        document.getElementById("live-status").style.color = "#ffa502";
+        updateStatus("Locked", "status-locked");
+        logAction("Betting Closed.");
     }
 
     function reveal(ans) {
@@ -85,13 +192,26 @@
             result: ans,
             status: "locked" 
         });
-        document.getElementById("live-status").innerText = "RESULT: " + ans;
+        updateStatus("Result Sent", "");
+        logAction("Result set to: " + ans);
     }
 
-    function nextQuestion() {
-        index = (index + 1) % questions.length;
-        document.getElementById("currentQuestion").innerText = questions[index];
+    function rotateQuestion() {
+        qIndex = (qIndex + 1) % questions.length;
+        document.getElementById("displayQ").innerText = questions[qIndex];
+        logAction("Queued: " + questions[qIndex]);
+    }
+
+    function updateStatus(text, className) {
+        const pill = document.getElementById("status-pill");
+        pill.innerText = text;
+        pill.className = className;
+    }
+
+    function logAction(msg) {
+        document.getElementById("log").innerText = "[" + new Date().toLocaleTimeString() + "] " + msg;
     }
 </script>
+
 </body>
 </html>

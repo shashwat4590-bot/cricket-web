@@ -9,37 +9,34 @@
         *{box-sizing:border-box;font-family:Inter,system-ui,Arial;}
         body{margin:0;background:#0e1117;color:white;display:flex;justify-content:center;align-items:center;height:100vh;}
         .panel{width:420px;background:#151a22;padding:25px;border-radius:12px;border:1px solid #333;}
-        .title{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;}
-        #live-status{font-size:12px;color:#2ed573;}
-        .current{font-size:18px;margin-bottom:20px;padding:15px;background:#0e1117;border-radius:8px;border-left:4px solid #1e90ff;}
-        button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;}
+        .title{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+        #live-status{font-size:12px;color:#2ed573;background:#000;padding:4px 8px;border-radius:4px;}
+        .current{font-size:18px;margin:20px 0;padding:15px;background:#0e1117;border-radius:8px;border-left:4px solid #1e90ff;}
+        button{width:100%;padding:14px;margin-top:10px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:0.2s;}
         .send{background:#2ed573;color:black;}
         .lock{background:#ffa502;color:black;}
         .next{background:#1e90ff;color:white;}
         .correctYes{background:#2ed573;color:black;width:48%;display:inline-block;}
         .correctNo{background:#ff4757;color:white;width:48%;display:inline-block;}
-        .clear{background:transparent;border:1px solid #444;color:#888;margin-top:20px;}
-        button:active{transform:scale(0.98);}
+        button:active{transform:scale(0.96);}
     </style>
 </head>
 <body>
 <div class="panel">
     <div class="title">
-        <span>🎮 Host Control</span>
-        <span id="live-status">● Live</span>
+        <span>🎮 Host Panel</span>
+        <span id="live-status">Ready</span>
     </div>
     <div id="currentQuestion" class="current">Boundary on next ball?</div>
     
-    <button class="send" onclick="send()">🚀 PUSH QUESTION (10s)</button>
-    <button class="lock" onclick="lock()">🔒 LOCK BETS NOW</button>
-    <button class="next" onclick="nextQuestion()">⏭️ QUEUE NEXT</button>
+    <button class="send" onclick="send()">🚀 PUSH QUESTION</button>
+    <button class="lock" onclick="lock()">🔒 LOCK BETS</button>
+    <button class="next" onclick="nextQuestion()">⏭️ NEXT IN LIST</button>
     
     <div style="margin-top:15px; display:flex; justify-content:space-between;">
         <button class="correctYes" onclick="reveal('YES')">Reveal YES</button>
         <button class="correctNo" onclick="reveal('NO')">Reveal NO</button>
     </div>
-
-    <button class="clear" onclick="resetGame()">🗑️ Clear/Reset All</button>
 </div>
 
 <script>
@@ -61,54 +58,39 @@
         "Next ball > 1.5 runs?",
         "Wicket this over?",
         "Dot ball next delivery?",
-        "Sixer this over?"
+        "Will there be a Wide?"
     ];
     let index = 0;
 
-    /* Replace the send() function in host.html with this */
+    function send() {
+        // .set() replaces everything at this node, clearing the old result
+        questionRef.set({
+            question: questions[index],
+            status: "open",
+            endTime: Date.now() + 10500, 
+            result: null
+        });
+        document.getElementById("live-status").innerText = "LIVE NOW";
+        document.getElementById("live-status").style.color = "#2ed573";
+    }
 
-function send() {
-    // 1. Move to the next question automatically if you like, 
-    // or just use the current one displayed.
-    
-    questionRef.set({
-        question: questions[index],
-        status: "open",
-        endTime: Date.now() + 10500, // 10 seconds
-        result: null,                // CLEARING the old result is key!
-        startTime: Date.now()        // Helpful for syncing
-    }).then(() => {
-        console.log("Question Pushed Successfully");
-    }).catch((error) => {
-        console.error("Firebase Error:", error);
-    });
-}
     function lock() {
         questionRef.update({ status: "locked" });
+        document.getElementById("live-status").innerText = "LOCKED";
+        document.getElementById("live-status").style.color = "#ffa502";
     }
 
     function reveal(ans) {
-    // We update the existing question with the result
-    // and ensure the status is locked so no one can vote late
-    questionRef.update({ 
-        result: ans,
-        status: "locked" 
-    }).then(() => {
-        console.log("Result pushed: " + ans);
-    }).catch((err) => {
-        alert("Error pushing answer: " + err.message);
-    });
-}
+        questionRef.update({ 
+            result: ans,
+            status: "locked" 
+        });
+        document.getElementById("live-status").innerText = "RESULT: " + ans;
+    }
 
     function nextQuestion() {
         index = (index + 1) % questions.length;
         document.getElementById("currentQuestion").innerText = questions[index];
-    }
-
-    function resetGame() {
-        if(confirm("This will clear everything for all users. Continue?")) {
-            questionRef.remove();
-        }
     }
 </script>
 </body>

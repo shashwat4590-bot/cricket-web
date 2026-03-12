@@ -1,88 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Cricket Billionaire</title>
+<title>Cricket Prediction</title>
 
 <style>
 
 *{
-box-sizing:border-box;
 margin:0;
 padding:0;
-font-family:Arial, Helvetica, sans-serif;
+box-sizing:border-box;
+font-family:Arial;
 }
 
 body{
-height:100vh;
+background:#f2f4f8;
 display:flex;
 justify-content:center;
-align-items:center;
-background:linear-gradient(135deg,#020024,#090979,#00d4ff);
-color:white;
 }
 
-.container{
+.app{
 width:420px;
-padding:30px;
-border-radius:20px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(10px);
-box-shadow:0 10px 30px rgba(0,0,0,0.5);
-text-align:center;
+background:white;
+min-height:100vh;
 }
 
-.title{
-font-size:28px;
-font-weight:bold;
-margin-bottom:15px;
-}
+/* HEADER */
 
-.score{
-font-size:16px;
-margin-bottom:10px;
-color:#00ffcc;
-}
-
-.timer{
-font-size:18px;
-margin-bottom:15px;
-color:#ffd700;
-}
-
-.question{
-background:#1f4bd8;
-padding:18px;
-border-radius:12px;
-margin-bottom:20px;
-font-size:18px;
-box-shadow:0 5px 15px rgba(0,0,0,0.4);
-}
-
-.answer{
-display:block;
-width:100%;
-padding:14px;
-margin:10px 0;
-border:none;
-border-radius:30px;
-background:linear-gradient(45deg,#3a6eff,#00c6ff);
+.header{
+background:#ff6a00;
 color:white;
-font-size:15px;
+padding:15px;
+font-weight:bold;
+}
+
+/* MATCH TITLE */
+
+.match{
+padding:15px;
+background:white;
+border-bottom:1px solid #ddd;
+font-size:16px;
+}
+
+/* CARD */
+
+.card{
+background:white;
+margin:12px;
+padding:15px;
+border-radius:12px;
+box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+.card-title{
+font-weight:bold;
+margin-bottom:12px;
+}
+
+/* ROW */
+
+.row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px;
+}
+
+/* TEAM */
+
+.team{
+width:60%;
+font-size:14px;
+}
+
+/* BUTTONS */
+
+.options{
+display:flex;
+gap:10px;
+}
+
+.btn{
+padding:10px 14px;
+border-radius:8px;
+border:none;
+font-weight:bold;
 cursor:pointer;
-transition:0.3s;
 }
 
-.answer:hover{
-transform:scale(1.05);
-box-shadow:0 5px 15px rgba(0,0,0,0.5);
+.yes{
+background:#6bb6ff;
+color:white;
 }
 
-.correct{
-background:#2ecc71 !important;
+.no{
+background:#ff9aa2;
+color:white;
 }
 
-.wrong{
-background:#e74c3c !important;
+.btn:hover{
+opacity:0.85;
 }
 
 </style>
@@ -90,144 +107,85 @@ background:#e74c3c !important;
 
 <body>
 
-<div class="container">
+<div class="app">
 
-<div class="title">🏏 Cricket Billionaire</div>
+<div class="header">
+🏏 Cricket Prediction
+</div>
 
-<div class="score">Score: <span id="score">0</span></div>
+<div class="match">
+Karachi Region Whites vs Bahawalpur Region
+</div>
 
-<div class="timer">Time: <span id="time">10</span></div>
+<div class="card">
 
-<div class="question" id="question"></div>
+<div class="card-title">
+Over 1.5 Runs off Delivery
+</div>
 
-<div id="answers"></div>
+<div class="row">
+
+<div class="team">
+Karachi Region Whites
+</div>
+
+<div class="options">
+<button class="btn yes">Yes</button>
+<button class="btn no">No</button>
+</div>
 
 </div>
 
-<script>
+<div class="row">
 
-let score=0
+<div class="team">
+Bahawalpur Region
+</div>
 
-let questions=[
-{
-q:"What is it called when a batsman scores zero runs?",
-a:["A Blank","A Duck","A Zero","A Goose"],
-c:1
-},
-{
-q:"How many players are in a cricket team?",
-a:["9","10","11","12"],
-c:2
-},
-{
-q:"How many overs are there in T20 cricket?",
-a:["10","15","20","25"],
-c:2
-},
-{
-q:"How many balls are in one over?",
-a:["4","5","6","8"],
-c:2
-},
-{
-q:"Which country invented cricket?",
-a:["India","England","Australia","South Africa"],
-c:1
-}
-]
+<div class="options">
+<button class="btn yes">Yes</button>
+<button class="btn no">No</button>
+</div>
 
-let current=0
-let time=10
-let timer
+</div>
 
-function loadQuestion(){
+</div>
 
-clearInterval(timer)
+<div class="card">
 
-time=10
-document.getElementById("time").innerText=time
+<div class="card-title">
+Over 3.5 Runs off Delivery
+</div>
 
-let q=questions[current]
+<div class="row">
 
-document.getElementById("question").innerText=q.q
+<div class="team">
+Karachi Region Whites
+</div>
 
-let answersHTML=""
+<div class="options">
+<button class="btn yes">Yes</button>
+<button class="btn no">No</button>
+</div>
 
-q.a.forEach((ans,i)=>{
+</div>
 
-answersHTML+=`<button class="answer" onclick="checkAnswer(${i})">${ans}</button>`
+<div class="row">
 
-})
+<div class="team">
+Bahawalpur Region
+</div>
 
-document.getElementById("answers").innerHTML=answersHTML
+<div class="options">
+<button class="btn yes">Yes</button>
+<button class="btn no">No</button>
+</div>
 
-timer=setInterval(updateTimer,1000)
+</div>
 
-}
+</div>
 
-function updateTimer(){
-
-time--
-
-document.getElementById("time").innerText=time
-
-if(time<=0){
-
-clearInterval(timer)
-nextQuestion()
-
-}
-
-}
-
-function checkAnswer(i){
-
-clearInterval(timer)
-
-let correct=questions[current].c
-
-let buttons=document.querySelectorAll(".answer")
-
-buttons.forEach((btn,index)=>{
-
-if(index===correct) btn.classList.add("correct")
-
-if(index===i && i!==correct) btn.classList.add("wrong")
-
-})
-
-if(i===correct){
-
-score++
-document.getElementById("score").innerText=score
-
-}
-
-setTimeout(nextQuestion,1500)
-
-}
-
-function nextQuestion(){
-
-current++
-
-if(current>=questions.length){
-
-alert("Game Over! Your score: "+score)
-
-current=0
-score=0
-document.getElementById("score").innerText=score
-
-}
-
-loadQuestion()
-
-}
-
-loadQuestion()
-
-</script>
+</div>
 
 </body>
 </html>

@@ -164,63 +164,68 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Update this part in your index.html script
-    db.ref("currentQuestion").on("value", (snap) => {
-        const data = snap.val();
-        if(!data) return;
+   // Replace the db.ref("currentQuestion").on section in your index.html with this:
 
-        const qText = document.getElementById('q-text');
-        const box = document.getElementById('options-box');
+db.ref("currentQuestion").on("value", (snap) => {
+    const data = snap.val();
+    if(!data) return;
 
-        // Reset Logic if Question changes
-        const qID = data.question + data.timestamp;
-        if(window.lastQ !== qID) {
-            window.lastQ = qID;
-            localStorage.setItem('isLocked', 'false');
-            localStorage.setItem('myPick', '');
-            localStorage.setItem('paid', 'false'); // Important for payout
-            document.getElementById('lock-msg').style.display = 'none';
-        }
+    const qText = document.getElementById('q-text');
+    const box = document.getElementById('options-box');
+    const lockBtn = document.getElementById('lock-btn');
+    const lockMsg = document.getElementById('lock-msg');
 
-        // Handle Waiting State
-        if(data.active === false) {
-            qText.innerText = "Waiting for next scenario...";
-            box.innerHTML = "";
-            document.getElementById('lock-btn').style.display = "none";
-            return;
-        }
+    // 1. CHECK IF ACTIVE
+    if (data.active === false) {
+        qText.innerText = "Waiting for next scenario...";
+        box.innerHTML = `<div style="color:gray; margin-top:20px; font-style:italic;">Analyzing match situation...</div>`;
+        lockBtn.style.display = "none";
+        lockMsg.style.display = "none";
+        return; 
+    }
 
-        qText.innerText = data.question;
-        document.getElementById('live-score').innerText = data.matchScore || "0/0";
+    // 2. NEW QUESTION RESET
+    const qID = data.question + data.timestamp;
+    if(window.lastQ !== qID) {
+        window.lastQ = qID;
+        localStorage.setItem('isLocked', 'false');
+        localStorage.setItem('myPick', '');
+        localStorage.setItem('paid', 'false');
+        lockMsg.style.display = 'none';
+        lockBtn.style.display = 'none';
+    }
 
-        // Render Options
-        box.innerHTML = "";
-        data.options.forEach(o => {
-            const b = document.createElement('button');
-            b.className = "opt-btn";
-            b.innerText = o;
-            
-            // Highlight result if winner declared
-            if(data.result === o) b.style.background = "#22c55e"; 
-            
-            b.onclick = () => {
-                if(localStorage.getItem('isLocked') === 'true') return;
-                document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
-                b.classList.add('selected');
-                window.pick = o;
-                document.getElementById('lock-btn').style.display = "block";
-            };
-            box.appendChild(b);
-        });
+    // 3. RENDER DATA
+    qText.innerText = data.question;
+    document.getElementById('live-score').innerText = data.matchScore || "0/0";
 
-        // PAYOUT LOGIC: If winner is declared and matches user's pick
-        if(data.result && localStorage.getItem('myPick') === data.result && localStorage.getItem('paid') === 'false') {
-            tokens += 20; // Original 10 + 10 Profit
-            localStorage.setItem('paid', 'true');
-            updateBalanceDisplay();
-            alert("Congratulations! You won 20 Tokens!");
-        }
+    box.innerHTML = "";
+    data.options.forEach(o => {
+        const b = document.createElement('button');
+        b.className = "opt-btn";
+        b.innerText = o;
+        
+        // Highlight winner if declared
+        if(data.result === o) b.style.background = "#22c55e"; 
+        
+        b.onclick = () => {
+            if(localStorage.getItem('isLocked') === 'true') return;
+            document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+            b.classList.add('selected');
+            window.pick = o;
+            lockBtn.style.display = "block";
+        };
+        box.appendChild(b);
     });
+
+    // 4. PAYOUT LOGIC (2x Return)
+    if(data.result && localStorage.getItem('myPick') === data.result && localStorage.getItem('paid') === 'false') {
+        tokens += 20; // 10 back + 10 win
+        localStorage.setItem('paid', 'true');
+        updateBalanceDisplay();
+        alert("Boom! Correct prediction. +20 Tokens!");
+    }
+});
 
     function confirmBet() {
         if(tokens < 10) return alert("Not enough tokens!");

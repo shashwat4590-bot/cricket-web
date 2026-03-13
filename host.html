@@ -171,15 +171,18 @@
     let qIndex = 0;
 
     function pushQuestion() {
-        questionRef.set({
-            question: questions[qIndex],
-            status: "open",
-            endTime: Date.now() + 10500,
-            result: null
-        });
+    // We use .set() to ensure 'result' is totally deleted
+    questionRef.set({
+        question: questions[qIndex],
+        status: "open",
+        endTime: Date.now() + 10500,
+        startTime: Date.now(), // Added timestamp to force update
+        result: null
+    }).then(() => {
         updateStatus("Live Now", "status-online");
         logAction("Pushed: " + questions[qIndex]);
-    }
+    });
+}
 
     function lockBets() {
         questionRef.update({ status: "locked" });

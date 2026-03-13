@@ -3,43 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Predictor</title>
+    <title>Cricket Live Predictor</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        :root { --bg: #0f172a; --card: #1e293b; --primary: #38bdf8; --success: #22c55e; --error: #ef4444; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background: var(--bg); color: white; display: flex; justify-content: center; padding-top: 50px; }
-        .container { width: 90%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #334155; }
-        #scoreDisplay { color: var(--primary); font-weight: bold; margin-bottom: 20px; display: block; }
-        #question { font-size: 1.4rem; margin-bottom: 20px; min-height: 50px; font-weight: 600; }
-        .timer-bar { height: 8px; background: #0f172a; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
-        #timerFill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
-        .btn-group { display: flex; gap: 10px; }
-        button { flex: 1; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .yes { background: var(--success); color: #064e3b; }
-        .no { background: var(--error); color: white; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        .correct { background: var(--success) !important; color: white !important; transform: scale(1.05); }
-        .wrong { background: #334155 !important; opacity: 0.2 !important; }
+        :root {
+            --bg: #0b0e14;
+            --card: #1c222d;
+            --primary: #00d2ff;
+            --success: #00f2a6;
+            --error: #ff4b5c;
+            --text-dim: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at top right, #1e293b, #0b0e14);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        /* Header & Points */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 10px 5px;
+        }
+
+        .brand { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--primary); }
+        
+        #scoreDisplay {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--primary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+        }
+
+        /* Match Card */
+        .match-status {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .team { text-align: center; }
+        .team img { width: 45px; height: 45px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+        .team-name { display: block; font-size: 0.7rem; font-weight: 700; margin-top: 5px; color: var(--text-dim); }
+        .live-dot { width: 8px; height: 8px; background: red; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1s infinite; }
+
+        /* Prediction Area */
+        .main-card {
+            background: var(--card);
+            border-radius: 28px;
+            padding: 30px 25px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        #question {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            min-height: 70px;
+            text-align: center;
+        }
+
+        /* Modern Timer Bar */
+        .timer-container { margin-bottom: 30px; }
+        .timer-info { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: var(--text-dim); margin-bottom: 10px; }
+        
+        .timer-bg { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
+        #timerFill { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--primary), #a855f7); 
+            width: 0%; 
+            transition: width 1s linear; 
+        }
+
+        /* Action Buttons */
+        .btn-group { display: flex; gap: 15px; }
+        
+        .predict-btn {
+            flex: 1;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-yes { background: var(--success); color: #064e3b; box-shadow: 0 4px 15px rgba(0, 242, 166, 0.2); }
+        .btn-no { background: var(--error); color: #fff; box-shadow: 0 4px 15px rgba(255, 75, 92, 0.2); }
+
+        .predict-btn:disabled { opacity: 0.2; cursor: not-allowed; transform: scale(0.98); }
+        .predict-btn:active:not(:disabled) { transform: scale(0.95); }
+
+        /* Result Styles */
+        .correct-ans { background: var(--success) !important; color: #064e3b !important; transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 242, 166, 0.4); }
+        .wrong-ans { background: #2d3748 !important; opacity: 0.2 !important; color: #4a5568 !important; }
+        .selected { border: 3px solid white !important; }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <span id="scoreDisplay">Points: 0</span>
-    <div id="question">Waiting for host...</div>
-    <div class="timer-bar"><div id="timerFill"></div></div>
-    <div class="btn-group">
-        <button id="yesBtn" class="yes" onclick="answer('YES')">YES</button>
-        <button id="noBtn" class="no" onclick="answer('NO')">NO</button>
+<div class="app-container">
+    <header>
+        <div class="brand">PREDICT<span style="color:white">LIVE</span></div>
+        <div id="scoreDisplay">0 PTS</div>
+    </header>
+
+    <div class="match-status">
+        <div class="team">
+            <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg">
+            <span class="team-name">CSK</span>
+        </div>
+        <div style="text-align:center">
+            <span style="font-size: 0.6rem; color: var(--text-dim); font-weight: 800; letter-spacing: 2px;">LIVE MATCH</span>
+            <div style="font-weight: 900; font-style: italic; opacity: 0.2; font-size: 1.5rem;">VS</div>
+        </div>
+        <div class="team">
+            <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg">
+            <span class="team-name">MI</span>
+        </div>
     </div>
+
+    <div class="main-card">
+        <div id="question">Connecting to Match Data...</div>
+        
+        <div class="timer-container">
+            <div class="timer-info">
+                <span>VOTING WINDOW</span>
+                <span id="timerText">--</span>
+            </div>
+            <div class="timer-bg">
+                <div id="timerFill"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button id="yesBtn" class="predict-btn btn-yes" onclick="answer('YES')">Yes</button>
+            <button id="noBtn" class="predict-btn btn-no" onclick="answer('NO')">No</button>
+        </div>
+    </div>
+
+    <p style="text-align:center; color: var(--text-dim); font-size: 0.7rem; margin-top: 30px; letter-spacing: 1px;">
+        <span class="live-dot"></span> REAL-TIME SYNC ACTIVE
+    </p>
 </div>
 
 <script>
-    // 1. YOUR FIREBASE CONFIG
+    // --- YOUR FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "PASTE_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -58,9 +204,8 @@
     let myChoice = null;
     let timer;
 
-    document.getElementById("scoreDisplay").innerText = "Points: " + score;
+    document.getElementById("scoreDisplay").innerText = score + " PTS";
 
-    // 2. THE LISTENER
     qRef.on("value", (snap) => {
         const val = snap.val();
         if (!val) {
@@ -68,22 +213,18 @@
             return;
         }
 
-        // SHOW QUESTION ALWAYS
         document.getElementById("question").innerText = val.question;
 
-        // If a new question starts (no result yet)
         if (!val.result) {
             myChoice = null;
             resetUI();
-            
             if (val.status === "open") {
                 startTimer(val.endTime);
             } else {
                 disableAll();
+                document.getElementById("timerText").innerText = "CLOSED";
             }
-        } 
-        // If result is pushed
-        else {
+        } else {
             showResult(val.result);
         }
     });
@@ -91,11 +232,14 @@
     function startTimer(endTime) {
         clearInterval(timer);
         timer = setInterval(() => {
-            const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
-            document.getElementById("timerFill").style.width = (remaining * 10) + "%";
-            if (remaining <= 0) {
+            const diff = endTime - Date.now();
+            const sec = Math.max(0, Math.floor(diff / 1000));
+            document.getElementById("timerText").innerText = sec + "s";
+            document.getElementById("timerFill").style.width = (sec * 10) + "%";
+            if (sec <= 0) {
                 clearInterval(timer);
                 disableAll();
+                document.getElementById("timerText").innerText = "LOCKED";
             }
         }, 1000);
     }
@@ -103,8 +247,9 @@
     function answer(choice) {
         if (myChoice) return;
         myChoice = choice;
+        if (navigator.vibrate) navigator.vibrate(40);
         disableAll();
-        document.getElementById(choice === 'YES' ? 'yesBtn' : 'noBtn').style.border = "3px solid white";
+        document.getElementById(choice === 'YES' ? 'yesBtn' : 'noBtn').classList.add("selected");
     }
 
     function showResult(correct) {
@@ -113,15 +258,15 @@
         const y = document.getElementById("yesBtn");
         const n = document.getElementById("noBtn");
 
-        if (correct === "YES") { y.classList.add("correct"); n.classList.add("wrong"); }
-        else { n.classList.add("correct"); y.classList.add("wrong"); }
+        if (correct === "YES") { y.classList.add("correct-ans"); n.classList.add("wrong-ans"); }
+        else { n.classList.add("correct-ans"); y.classList.add("wrong-ans"); }
 
         if (myChoice === correct) {
-            confetti();
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00f2a6'] });
             score += 100;
             localStorage.setItem("c_score", score);
-            document.getElementById("scoreDisplay").innerText = "Points: " + score;
-            myChoice = "done"; // stop double points
+            document.getElementById("scoreDisplay").innerText = score + " PTS";
+            myChoice = "done";
         }
     }
 
@@ -134,9 +279,9 @@
         const y = document.getElementById("yesBtn");
         const n = document.getElementById("noBtn");
         y.disabled = false; n.disabled = false;
-        y.classList.remove("correct", "wrong");
-        n.classList.remove("correct", "wrong");
-        y.style.border = "none"; n.style.border = "none";
+        y.classList.remove("correct-ans", "wrong-ans", "selected");
+        n.classList.remove("correct-ans", "wrong-ans", "selected");
+        document.getElementById("timerText").innerText = "";
     }
 </script>
 </body>

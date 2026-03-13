@@ -9,146 +9,139 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
         
         :root {
             --bg: #020617;
             --card: #0f172a;
             --accent: #38bdf8;
             --gold: #fbbf24;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
+            --error: #ef4444;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; line-height: 1.5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 
-        /* Header Bar */
-        header {
-            position: fixed; top: 0; width: 100%; height: 70px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; background: rgba(2, 6, 23, 0.8);
-            backdrop-filter: blur(10px); z-index: 1000;
-        }
-        .logo { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
-        .logo span { color: var(--accent); }
-
-        /* Token Pill */
-        .token-pill {
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid var(--gold);
-            padding: 6px 14px; border-radius: 50px;
-            display: flex; align-items: center; gap: 8px;
-            font-weight: 700; color: var(--gold);
+        /* Floating Token Pill */
+        .token-header {
+            position: fixed; top: 20px; right: 20px; z-index: 2000;
+            background: rgba(15, 23, 42, 0.9); border: 1px solid var(--gold);
+            padding: 8px 16px; border-radius: 50px; backdrop-filter: blur(10px);
+            display: flex; align-items: center; gap: 8px; font-weight: 900; color: var(--gold);
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
         }
 
-        /* Layout */
-        .container { padding: 90px 20px 100px; max-width: 500px; margin: 0 auto; }
-        .page { display: none; animation: slideUp 0.4s ease-out; }
-        .page.active { display: block; }
-
-        /* Cards */
-        .card {
-            background: var(--card); border-radius: 24px; padding: 24px;
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
-        }
-
-        /* Arena Specifics */
-        .live-tag {
-            background: #ef4444; color: white; font-size: 0.7rem;
-            padding: 2px 8px; border-radius: 4px; font-weight: 800;
-            display: inline-block; margin-bottom: 10px;
-        }
-        .score-display { font-size: 3rem; font-weight: 800; margin-bottom: 5px; }
-        .q-text { font-size: 1.4rem; font-weight: 600; margin: 20px 0; color: var(--text-main); }
-
-        /* Grid & Buttons */
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .opt-btn {
-            background: #1e293b; border: 1px solid #334155; color: white;
-            padding: 18px 10px; border-radius: 16px; font-weight: 600;
-            transition: all 0.2s; cursor: pointer;
-        }
-        .opt-btn.selected { background: var(--accent); color: #000; border-color: var(--accent); transform: scale(0.98); }
-        
-        .primary-btn {
-            background: var(--accent); color: #000; border: none;
-            padding: 18px; border-radius: 16px; font-weight: 800;
-            width: 100%; margin-top: 20px; cursor: pointer;
-        }
-
-        /* Wallet Input */
-        .wallet-input {
-            background: #1e293b; border: 2px solid #334155;
-            padding: 15px; border-radius: 16px; width: 100%;
-            color: white; font-size: 1.2rem; text-align: center; margin: 15px 0;
-        }
-
-        /* Bottom Nav */
-        nav {
+        /* Navigation */
+        .bottom-nav {
             position: fixed; bottom: 0; width: 100%; background: var(--card);
-            display: flex; justify-content: space-around; padding: 15px 10px 25px;
-            border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000;
+            display: flex; justify-content: space-around; padding: 20px;
+            border-top: 1px solid #1e293b; z-index: 1000;
         }
-        .nav-link { color: var(--text-dim); text-decoration: none; font-size: 0.8rem; font-weight: 600; text-align: center; }
-        .nav-link.active { color: var(--accent); }
+        .nav-item { color: #64748b; font-weight: 800; cursor: pointer; font-size: 0.8rem; letter-spacing: 1px; }
+        .nav-item.active { color: var(--accent); }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Pages */
+        .page { display: none; padding: 40px 20px 120px; animation: fadeIn 0.4s ease; width: 100%; }
+        .page.active { display: flex; flex-direction: column; align-items: center; }
+
+        /* Professional Cards */
+        .match-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            width: 100%; max-width: 400px; border-radius: 30px; padding: 40px 20px;
+            border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; margin-top: 40px;
+        }
+
+        .score-box { 
+            background: var(--card); border-radius: 20px; padding: 25px; 
+            width: 100%; max-width: 400px; border: 1px solid #1e293b; 
+            margin-bottom: 20px; text-align: center; 
+        }
+        #live-score { font-size: 3.5rem; font-weight: 900; color: white; line-height: 1; margin: 10px 0; }
+        
+        .question-card { 
+            background: var(--card); border-radius: 30px; padding: 35px 20px; 
+            width: 100%; max-width: 400px; border: 1px solid #1e293b; text-align: center; 
+        }
+        #q-text { font-size: 1.5rem; font-weight: 700; margin-bottom: 25px; color: #f8fafc; }
+
+        /* Option Buttons */
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .opt-btn { 
+            background: #1e293b; border: 2px solid #334155; color: white; 
+            padding: 20px 10px; border-radius: 18px; font-size: 1rem; 
+            font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .opt-btn.selected { border: 3px solid var(--accent); background: rgba(56, 189, 248, 0.1); }
+        
+        .action-btn { 
+            background: var(--accent); color: #000; border: none; 
+            padding: 18px; border-radius: 18px; font-weight: 900; 
+            width: 100%; font-size: 1.1rem; margin-top: 20px; cursor: pointer; 
+        }
+        .lock-btn { background: var(--gold); }
+
+        /* Wallet UI */
+        .wallet-card { 
+            background: var(--card); border-radius: 30px; padding: 40px 25px; 
+            width: 100%; max-width: 400px; border: 2px solid var(--gold); text-align: center; 
+        }
+        .wallet-input { 
+            background: #020617; border: 2px solid #334155; padding: 18px; 
+            border-radius: 15px; color: white; width: 100%; 
+            font-size: 1.4rem; text-align: center; margin: 20px 0; 
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">PREDICT<span>LIVE</span></div>
-        <div class="token-pill">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-            <span id="pill-balance">0</span>
+    <div class="token-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        <span id="top-balance">0</span>
+    </div>
+
+    <div id="home" class="page active">
+        <h1 style="color: var(--accent); font-size: 2.2rem; font-weight: 900; margin-top: 20px;">PREDICT<span style="color:white">LIVE</span></h1>
+        <div class="match-card">
+            <p style="color: var(--gold); font-weight: 800; letter-spacing: 2px; font-size: 0.7rem; margin-bottom: 10px;">UPCOMING / LIVE</p>
+            <h2 style="font-size: 2rem; margin-bottom: 5px;">CSK vs MI</h2>
+            <p style="color: #64748b; font-weight: 600; margin-bottom: 30px;">IPL 2026 FINAL</p>
+            <button class="action-btn" onclick="nav('arena')">ENTER ARENA</button>
         </div>
-    </header>
+    </div>
 
-    <div class="container">
-        <div id="home" class="page active">
-            <div class="card" style="text-align: center;">
-                <div class="live-tag">LIVE MATCH</div>
-                <h2 style="font-size: 1.8rem; margin: 10px 0;">CSK vs MI</h2>
-                <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 25px;">TATA IPL 2026 • FINALS</p>
-                <button class="primary-btn" onclick="nav('arena')">Join Live Arena</button>
-            </div>
-        </div>
-
-        <div id="arena" class="page">
-            <div class="card" style="text-align: center; background: linear-gradient(to bottom, #1e293b, #0f172a);">
-                <p id="batting-team" style="font-weight: 600; color: var(--accent); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">Live Score</p>
-                <div class="score-display" id="live-score">0/0</div>
-            </div>
-
-            <div class="card">
-                <p class="q-text" id="q-text">Connecting to server...</p>
-                <div id="options-box" class="opt-grid"></div>
-                <button id="lock-btn" class="primary-btn" style="display:none; background: var(--gold);" onclick="confirmBet()">Confirm Prediction</button>
-                <div id="lock-msg" style="display:none; text-align: center; margin-top: 20px; font-weight: 700; color: var(--accent);">Prediction Locked</div>
-            </div>
+    <div id="arena" class="page">
+        <div class="score-box">
+            <p id="batting-team" style="color: var(--accent); font-weight: 800; font-size: 0.8rem; letter-spacing: 2px;">MATCH UPDATES</p>
+            <div id="live-score">0/0</div>
         </div>
 
-        <div id="wallet" class="page">
-            <div class="card" style="text-align: center;">
-                <p style="color: var(--text-dim); font-weight: 600;">AVAILABLE BALANCE</p>
-                <h1 style="font-size: 4rem; color: var(--gold); margin: 10px 0;" id="wallet-balance">0</h1>
-                <div style="margin-top: 30px; text-align: left;">
-                    <label style="font-size: 0.8rem; color: var(--text-dim); padding-left: 5px;">RECHARGE TOKENS (₹)</label>
-                    <input type="number" id="buy-amt" class="wallet-input" placeholder="Min ₹50">
-                    <button class="primary-btn" style="background: var(--gold);" onclick="purchaseTokens()">Buy Tokens</button>
-                </div>
+        <div class="question-card">
+            <div id="q-text">Waiting for next ball...</div>
+            <div id="options-box" class="opt-grid"></div>
+            <button id="lock-btn" class="action-btn lock-btn" style="display:none;" onclick="confirmBet()">CONFIRM PREDICTION</button>
+            <div id="lock-msg" style="display:none; margin-top:20px; font-weight:900; color:var(--accent); font-size:1.1rem;"></div>
+        </div>
+    </div>
+
+    <div id="wallet" class="page">
+        <div class="wallet-card">
+            <p style="font-weight: 800; color: #64748b;">CURRENT BALANCE</p>
+            <div id="wallet-balance" style="font-size: 4rem; font-weight: 900; color: var(--gold);">0</div>
+            <div style="margin-top: 10px;">
+                <input type="number" id="recharge-amt" class="wallet-input" placeholder="Amount (₹)">
+                <button class="action-btn" style="background:var(--gold);" onclick="purchaseTokens()">BUY TOKENS</button>
+                <p style="color: #64748b; font-size: 0.7rem; margin-top: 15px;">MINIMUM RECHARGE: ₹50</p>
             </div>
         </div>
     </div>
 
-    <nav>
-        <div class="nav-link active" id="n-home" onclick="nav('home')">HOME</div>
-        <div class="nav-item nav-link" id="n-arena" onclick="nav('arena')">ARENA</div>
-        <div class="nav-item nav-link" id="n-wallet" onclick="nav('wallet')">WALLET</div>
-    </nav>
+    <div class="bottom-nav">
+        <div class="nav-item active" id="n-home" onclick="nav('home')">HOME</div>
+        <div class="nav-item" id="n-arena" onclick="nav('arena')">ARENA</div>
+        <div class="nav-item" id="n-wallet" onclick="nav('wallet')">WALLET</div>
+    </div>
 
 <script>
     const firebaseConfig = {
@@ -164,147 +157,101 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-  db.ref("currentQuestion").on("value", (snap) => {
-    const data = snap.val();
-    if(!data) return;
+    let tokens = parseInt(localStorage.getItem('tks')) || 0;
+    let selectedPick = "";
 
-    const qText = document.getElementById('q-text');
-    const box = document.getElementById('options-box');
-    const lockBtn = document.getElementById('lock-btn');
-    const lockMsg = document.getElementById('lock-msg');
+    db.ref("currentQuestion").on("value", (snap) => {
+        const data = snap.val();
+        if(!data) return;
 
-    // 1. WAITING STATE CHECK
-    if (data.active === false) {
-        qText.innerText = "Waiting for next scenario...";
-        box.innerHTML = `<div style="color:gray; margin-top:20px; font-style:italic;">Analyzing match situation...</div>`;
-        lockBtn.style.display = "none";
-        lockMsg.style.display = "none";
-        return; 
-    }
-
-    // 2. NEW QUESTION RESET
-    const qID = data.question + data.timestamp;
-    if(window.lastQ !== qID) {
-        window.lastQ = qID;
-        localStorage.setItem('isLocked', 'false');
-        localStorage.setItem('myPick', '');
-        localStorage.setItem('paid', 'false'); // Reset payout flag for new ball
-        lockMsg.style.display = 'none';
-        lockBtn.style.display = 'none';
-    }
-
-    // 3. RENDER DATA
-    qText.innerText = data.question;
-    document.getElementById('live-score').innerText = data.matchScore || "0/0";
-
-    box.innerHTML = "";
-    data.options.forEach(o => {
-        const b = document.createElement('button');
-        b.className = "opt-btn";
-        b.innerText = o;
+        const qText = document.getElementById('q-text');
+        const box = document.getElementById('options-box');
         
-        // Highlight winner if declared
-        if(data.result === o) {
-            b.style.background = "#22c55e"; 
-            b.style.color = "white";
+        // Reset for new questions
+        const qID = data.question + data.timestamp;
+        if(window.lastQ !== qID) {
+            window.lastQ = qID;
+            localStorage.setItem('isLocked', 'false');
+            localStorage.setItem('myPick', '');
+            localStorage.setItem('paid', 'false');
+            document.getElementById('lock-msg').style.display = 'none';
+            document.getElementById('lock-btn').style.display = 'none';
         }
-        
-        b.onclick = () => {
-            if(localStorage.getItem('isLocked') === 'true') return;
-            document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
-            b.classList.add('selected');
-            window.pick = o;
-            lockBtn.style.display = "block";
-        };
-        box.appendChild(b);
+
+        if (!data.active) {
+            qText.innerText = "Waiting for next ball...";
+            box.innerHTML = "";
+            return;
+        }
+
+        qText.innerText = data.question;
+        document.getElementById('live-score').innerText = data.matchScore || "0/0";
+
+        box.innerHTML = "";
+        data.options.forEach(o => {
+            const b = document.createElement('button');
+            b.className = "opt-btn";
+            b.innerText = o;
+            if(data.result === o) { b.style.background = "#22c55e"; b.style.borderColor = "#22c55e"; b.style.color="white"; }
+            b.onclick = () => {
+                if(localStorage.getItem('isLocked') === 'true') return;
+                document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+                b.classList.add('selected');
+                selectedPick = o;
+                document.getElementById('lock-btn').style.display = "block";
+            };
+            box.appendChild(b);
+        });
+
+        // Instant Payout Logic
+        const myPick = localStorage.getItem('myPick');
+        const alreadyPaid = localStorage.getItem('paid');
+        if(data.result && myPick === data.result && alreadyPaid === 'false') {
+            tokens += 20;
+            localStorage.setItem('tks', tokens);
+            localStorage.setItem('paid', 'true');
+            updateUI();
+            alert("🎯 CORRECT! You won 20 Tokens!");
+        }
     });
 
-    // 4. THE PAYOUT ENGINE (STRICT SYNC)
-    const userPick = localStorage.getItem('myPick');
-    const alreadyPaid = localStorage.getItem('paid');
-
-    if(data.result && userPick === data.result && alreadyPaid === 'false') {
-        // Step A: Get the absolute latest value from storage
-        let savedTokens = parseInt(localStorage.getItem('tks')) || 0;
-        
-        // Step B: Do the math
-        let newTotal = savedTokens + 20; 
-        
-        // Step C: Save it back immediately
-        localStorage.setItem('tks', newTotal);
-        localStorage.setItem('paid', 'true'); 
-        
-        // Step D: Update the global variable so other functions know
-        tokens = newTotal;
-        
-        // Step E: Force the UI to show the new number
-        updateBalanceDisplay();
-        
-        alert("🎯 WINNER! +20 Tokens added.");
-    }
-    
     function confirmBet() {
-    if(tokens < 10) return alert("Not enough tokens!");
-    
-    tokens -= 10;
-    localStorage.setItem('tks', tokens); // Save the deduction
-    updateBalanceDisplay();
-    
-    localStorage.setItem('isLocked', 'true');
-    localStorage.setItem('myPick', window.pick); // This must match the winner exactly
-    localStorage.setItem('paid', 'false'); // Ready for payout
-    
-    document.getElementById('lock-btn').style.display = "none";
-    document.getElementById('lock-msg').style.display = "block";
-    document.getElementById('lock-msg').innerText = "Prediction Locked: " + window.pick;
-}
-    // Economy Logic
-    let tokens = parseInt(localStorage.getItem('tks')) || 0;
-    updateBalanceDisplay();
-
-    function purchaseTokens() {
-        const amt = parseInt(document.getElementById('buy-amt').value);
-        if(amt >= 50) {
-            tokens += (amt * 2); // Example conversion: ₹1 = 2 Tokens
-            updateBalanceDisplay();
-            alert("Payment successful! Tokens added.");
-            document.getElementById('buy-amt').value = "";
-        } else {
-            alert("Minimum recharge amount is ₹50");
-        }
-    }
-
-    function confirmBet() {
-        if(tokens < 10) return alert("Not enough tokens!");
+        if(tokens < 10) return alert("Insufficient balance!");
         tokens -= 10;
-        updateBalanceDisplay();
+        localStorage.setItem('tks', tokens);
         localStorage.setItem('isLocked', 'true');
+        localStorage.setItem('myPick', selectedPick);
+        localStorage.setItem('paid', 'false');
+        updateUI();
         document.getElementById('lock-btn').style.display = "none";
         document.getElementById('lock-msg').style.display = "block";
-        document.getElementById('lock-msg').innerText = "Prediction Locked: " + window.pick;
+        document.getElementById('lock-msg').innerText = "LOCKED: " + selectedPick;
     }
 
-  function updateBalanceDisplay() {
-        // Always pull from localStorage to be 100% sure
-        const currentAmount = localStorage.getItem('tks') || "0";
-        
-        // Update the Top Corner Pill
-        const pill = document.getElementById('pill-balance');
-        if(pill) pill.innerText = currentAmount;
-        
-        // Update the Wallet Page Number
-        const wall = document.getElementById('wallet-balance');
-        if(wall) wall.innerText = currentAmount;
-        
-        console.log("UI Updated to: " + currentAmount);
+    function purchaseTokens() {
+        const amt = parseInt(document.getElementById('recharge-amt').value);
+        if(amt >= 50) {
+            tokens += (amt * 2);
+            localStorage.setItem('tks', tokens);
+            updateUI();
+            alert("Purchase Successful!");
+            document.getElementById('recharge-amt').value = "";
+        } else alert("Minimum ₹50 required");
+    }
+
+    function updateUI() {
+        document.getElementById('top-balance').innerText = tokens;
+        document.getElementById('wallet-balance').innerText = tokens;
     }
 
     function nav(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('n-' + id).classList.add('active');
     }
+
+    updateUI();
 </script>
 </body>
 </html>

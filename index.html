@@ -9,73 +9,148 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        :root { --bg: #020617; --card: #0f172a; --accent: #38bdf8; --gold: #fbbf24; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        body { background-color: var(--bg); color: white; min-height: 100vh; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --bg: #020617;
+            --card: #0f172a;
+            --accent: #38bdf8;
+            --gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
 
-        #connection-status { padding: 12px; background: #ef4444; text-align: center; font-weight: 900; font-size: 0.8rem; position: sticky; top: 0; z-index: 2000; transition: 0.5s; }
-        .page { display: none; padding: 30px 20px 120px; animation: fadeIn 0.4s ease; }
-        .page.active { display: flex; flex-direction: column; align-items: center; }
-        
-        .card { background: var(--card); border-radius: 30px; padding: 35px 25px; width: 100%; border: 1px solid #1e293b; text-align: center; margin-bottom: 20px; }
-        .score-val { font-size: 3.5rem; font-weight: 900; color: white; margin: 10px 0; }
-        
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-top: 20px; }
-        .opt-btn { background: #1e293b; border: 2px solid #334155; color: white; padding: 22px 10px; border-radius: 18px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
-        .opt-btn.selected { border: 3px solid var(--accent); background: rgba(56, 189, 248, 0.1); }
-        
-        .main-btn { background: var(--accent); color: black; border: none; padding: 20px; border-radius: 15px; font-weight: 900; width: 100%; cursor: pointer; }
-        .nav { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 20px; border-top: 2px solid #1e293b; }
-        .nav-item { color: #64748b; font-weight: 800; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; line-height: 1.5; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Header Bar */
+        header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(10px); z-index: 1000;
+        }
+        .logo { font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; }
+        .logo span { color: var(--accent); }
+
+        /* Token Pill */
+        .token-pill {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--gold);
+            padding: 6px 14px; border-radius: 50px;
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 700; color: var(--gold);
+        }
+
+        /* Layout */
+        .container { padding: 90px 20px 100px; max-width: 500px; margin: 0 auto; }
+        .page { display: none; animation: slideUp 0.4s ease-out; }
+        .page.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: var(--card); border-radius: 24px; padding: 24px;
+            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+
+        /* Arena Specifics */
+        .live-tag {
+            background: #ef4444; color: white; font-size: 0.7rem;
+            padding: 2px 8px; border-radius: 4px; font-weight: 800;
+            display: inline-block; margin-bottom: 10px;
+        }
+        .score-display { font-size: 3rem; font-weight: 800; margin-bottom: 5px; }
+        .q-text { font-size: 1.4rem; font-weight: 600; margin: 20px 0; color: var(--text-main); }
+
+        /* Grid & Buttons */
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .opt-btn {
+            background: #1e293b; border: 1px solid #334155; color: white;
+            padding: 18px 10px; border-radius: 16px; font-weight: 600;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .opt-btn.selected { background: var(--accent); color: #000; border-color: var(--accent); transform: scale(0.98); }
+        
+        .primary-btn {
+            background: var(--accent); color: #000; border: none;
+            padding: 18px; border-radius: 16px; font-weight: 800;
+            width: 100%; margin-top: 20px; cursor: pointer;
+        }
+
+        /* Wallet Input */
+        .wallet-input {
+            background: #1e293b; border: 2px solid #334155;
+            padding: 15px; border-radius: 16px; width: 100%;
+            color: white; font-size: 1.2rem; text-align: center; margin: 15px 0;
+        }
+
+        /* Bottom Nav */
+        nav {
+            position: fixed; bottom: 0; width: 100%; background: var(--card);
+            display: flex; justify-content: space-around; padding: 15px 10px 25px;
+            border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000;
+        }
+        .nav-link { color: var(--text-dim); text-decoration: none; font-size: 0.8rem; font-weight: 600; text-align: center; }
+        .nav-link.active { color: var(--accent); }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="connection-status">STATUS: DISCONNECTED</div>
+    <header>
+        <div class="logo">PREDICT<span>LIVE</span></div>
+        <div class="token-pill">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span id="pill-balance">0</span>
+        </div>
+    </header>
 
-    <div id="home" class="page active">
-        <h1 style="color: var(--accent); font-size: 2.5rem; margin-bottom: 20px;">PREDICT<span style="color:white">LIVE</span></h1>
-        <div class="card">
-            <h2 style="margin-bottom:20px;">IPL FINALS</h2>
-            <button class="main-btn" onclick="nav('arena')">JOIN ARENA</button>
+    <div class="container">
+        <div id="home" class="page active">
+            <div class="card" style="text-align: center;">
+                <div class="live-tag">LIVE MATCH</div>
+                <h2 style="font-size: 1.8rem; margin: 10px 0;">CSK vs MI</h2>
+                <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 25px;">TATA IPL 2026 • FINALS</p>
+                <button class="primary-btn" onclick="nav('arena')">Join Live Arena</button>
+            </div>
+        </div>
+
+        <div id="arena" class="page">
+            <div class="card" style="text-align: center; background: linear-gradient(to bottom, #1e293b, #0f172a);">
+                <p id="batting-team" style="font-weight: 600; color: var(--accent); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">Live Score</p>
+                <div class="score-display" id="live-score">0/0</div>
+            </div>
+
+            <div class="card">
+                <p class="q-text" id="q-text">Connecting to server...</p>
+                <div id="options-box" class="opt-grid"></div>
+                <button id="lock-btn" class="primary-btn" style="display:none; background: var(--gold);" onclick="confirmBet()">Confirm Prediction</button>
+                <div id="lock-msg" style="display:none; text-align: center; margin-top: 20px; font-weight: 700; color: var(--accent);">Prediction Locked</div>
+            </div>
+        </div>
+
+        <div id="wallet" class="page">
+            <div class="card" style="text-align: center;">
+                <p style="color: var(--text-dim); font-weight: 600;">AVAILABLE BALANCE</p>
+                <h1 style="font-size: 4rem; color: var(--gold); margin: 10px 0;" id="wallet-balance">0</h1>
+                <div style="margin-top: 30px; text-align: left;">
+                    <label style="font-size: 0.8rem; color: var(--text-dim); padding-left: 5px;">RECHARGE TOKENS (₹)</label>
+                    <input type="number" id="buy-amt" class="wallet-input" placeholder="Min ₹50">
+                    <button class="primary-btn" style="background: var(--gold);" onclick="purchaseTokens()">Buy Tokens</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="arena" class="page">
-        <div class="card">
-            <p style="color: var(--accent); letter-spacing: 2px; font-size: 0.8rem;">LIVE SCORE</p>
-            <div id="batting-team" style="font-weight: 800; margin-top: 5px;">LOADING...</div>
-            <div id="live-score" class="score-val">0/0</div>
-        </div>
-
-        <div class="card">
-            <div id="q-text" style="font-size: 1.5rem; font-weight: 700;">Waiting for Host...</div>
-            <div id="options-box" class="opt-grid"></div>
-            <button id="lock-btn" style="display:none; background:var(--gold); margin-top:20px;" class="main-btn" onclick="confirmBet()">LOCK BET (10 TOKENS)</button>
-            <p id="lock-msg" style="display:none; margin-top:20px; color:var(--accent); font-weight:900;"></p>
-        </div>
-    </div>
-
-    <div id="wallet" class="page">
-        <div class="card" style="border-color: var(--gold);">
-            <h3>MY TOKENS</h3>
-            <div id="bal-text" style="font-size: 4rem; font-weight: 900; color: var(--gold);">0</div>
-            <button class="main-btn" style="background:var(--gold); margin-top:20px;" onclick="addTokens()">GET 150 TOKENS (FREE)</button>
-        </div>
-    </div>
-
-    <div class="nav">
-        <div class="nav-item active" id="n-home" onclick="nav('home')">HOME</div>
-        <div class="nav-item" id="n-arena" onclick="nav('arena')">ARENA</div>
-        <div class="nav-item" id="n-wallet" onclick="nav('wallet')">WALLET</div>
-    </div>
+    <nav>
+        <div class="nav-link active" id="n-home" onclick="nav('home')">HOME</div>
+        <div class="nav-item nav-link" id="n-arena" onclick="nav('arena')">ARENA</div>
+        <div class="nav-item nav-link" id="n-wallet" onclick="nav('wallet')">WALLET</div>
+    </nav>
 
 <script>
-    // YOUR VERIFIED CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -86,38 +161,25 @@
         appId: "1:500705236300:web:1d28b90643d9288700abe9"
     };
 
-    // Initialize
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const statusEl = document.getElementById('connection-status');
-
-    // Connection Monitor
-    db.ref(".info/connected").on("value", (snap) => {
-        if (snap.val() === true) {
-            statusEl.innerText = "STATUS: CONNECTED (LIVE)";
-            statusEl.style.background = "#22c55e";
-        } else {
-            statusEl.innerText = "STATUS: RECONNECTING...";
-            statusEl.style.background = "#f59e0b";
-        }
-    });
 
     // Data Listener
     db.ref("currentQuestion").on("value", (snap) => {
         const data = snap.val();
         if(!data) return;
 
-        // Auto-Reset Lock if question changed
+        // Reset if new question
         const qID = data.question + data.timestamp;
         if(window.lastQ !== qID) {
             window.lastQ = qID;
-            localStorage.setItem('locked', 'false');
+            localStorage.setItem('isLocked', 'false');
             document.getElementById('lock-msg').style.display = 'none';
         }
 
         document.getElementById('q-text').innerText = data.question;
         document.getElementById('live-score').innerText = data.matchScore || "0/0";
-        document.getElementById('batting-team').innerText = data.battingTeam || "LIVE";
+        document.getElementById('batting-team').innerText = data.battingTeam || "Match Status";
 
         const box = document.getElementById('options-box');
         box.innerHTML = "";
@@ -127,7 +189,7 @@
                 b.className = "opt-btn";
                 b.innerText = o;
                 b.onclick = () => {
-                    if(localStorage.getItem('locked') === 'true') return;
+                    if(localStorage.getItem('isLocked') === 'true') return;
                     document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
                     b.classList.add('selected');
                     window.pick = o;
@@ -138,27 +200,41 @@
         }
     });
 
+    // Economy Logic
     let tokens = parseInt(localStorage.getItem('tks')) || 0;
-    document.getElementById('bal-text').innerText = tokens;
+    updateBalanceDisplay();
+
+    function purchaseTokens() {
+        const amt = parseInt(document.getElementById('buy-amt').value);
+        if(amt >= 50) {
+            tokens += (amt * 2); // Example conversion: ₹1 = 2 Tokens
+            updateBalanceDisplay();
+            alert("Payment successful! Tokens added.");
+            document.getElementById('buy-amt').value = "";
+        } else {
+            alert("Minimum recharge amount is ₹50");
+        }
+    }
 
     function confirmBet() {
-        if(tokens < 10) return alert("No tokens!");
+        if(tokens < 10) return alert("Not enough tokens!");
         tokens -= 10;
-        updateUI();
-        localStorage.setItem('locked', 'true');
+        updateBalanceDisplay();
+        localStorage.setItem('isLocked', 'true');
         document.getElementById('lock-btn').style.display = "none";
-        document.getElementById('lock-msg').innerText = "LOCKED: " + window.pick;
         document.getElementById('lock-msg').style.display = "block";
+        document.getElementById('lock-msg').innerText = "Prediction Locked: " + window.pick;
     }
 
-    function addTokens() { tokens += 150; updateUI(); }
-    function updateUI() { 
-        document.getElementById('bal-text').innerText = tokens; 
-        localStorage.setItem('tks', tokens); 
+    function updateBalanceDisplay() {
+        document.getElementById('pill-balance').innerText = tokens;
+        document.getElementById('wallet-balance').innerText = tokens;
+        localStorage.setItem('tks', tokens);
     }
+
     function nav(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('n-' + id).classList.add('active');
     }

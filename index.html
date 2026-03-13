@@ -3,112 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Elite</title>
+    <title>PredictLive Pro</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
-        body { background: #020617; color: white; font-family: 'Outfit', sans-serif; text-align: center; margin: 0; }
-        .card { background: #0f172a; margin: 20px; padding: 30px; border-radius: 30px; border: 1px solid #1e293b; }
-        .score { font-size: 3.5rem; font-weight: 900; color: #38bdf8; }
-        .opt-btn { background: #1e293b; color: white; border: 2px solid #334155; padding: 20px; margin: 10px; border-radius: 15px; width: 40%; font-weight: 700; font-size: 1.2rem; }
-        .active-btn { border-color: #38bdf8; background: rgba(56,189,248,0.1); }
-        .nav { position: fixed; bottom: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 20px; border-top: 2px solid #334155; }
-        #debug-bar { background: red; font-size: 12px; padding: 5px; position: fixed; top: 0; width: 100%; }
+        body { background: #020617; color: white; font-family: sans-serif; text-align: center; margin:0; }
+        #status { padding: 10px; background: red; font-size: 12px; font-weight: bold; }
+        .page { display: none; padding: 20px; padding-top: 50px; }
+        .active { display: block; }
+        .card { background: #0f172a; padding: 30px; border-radius: 20px; border: 1px solid #1e293b; margin: 20px; }
+        .opt-btn { background: #334155; color: white; border: none; padding: 20px; margin: 10px; width: 40%; border-radius: 10px; font-size: 1.2rem; cursor: pointer; }
+        .selected { background: #38bdf8; color: black; font-weight: bold; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #0f172a; display: flex; justify-content: space-around; padding: 20px; border-top: 1px solid #334155; }
     </style>
 </head>
 <body>
 
-<div id="debug-bar">Connection: Offline</div>
+<div id="status">CONNECTION: SEARCHING...</div>
 
-<div id="p-home">
-    <h1 style="margin-top:50px; color:#38bdf8;">PREDICT LIVE</h1>
+<div id="home" class="page active">
+    <h1>PREDICT LIVE</h1>
     <div class="card">
         <h2>CSK vs MI</h2>
-        <button onclick="showPage('arena')" style="padding:20px; width:80%; border-radius:15px; background:#38bdf8; border:none; font-weight:900;">GO TO ARENA</button>
+        <button onclick="nav('arena')" style="padding:15px; width:100%; background:#38bdf8; border:none; border-radius:10px; font-weight:bold;">JOIN ARENA</button>
+    </div>
+    <button onclick="nav('wallet')" style="color:#38bdf8; background:none; border:none;">Open My Wallet</button>
+</div>
+
+<div id="arena" class="page">
+    <div class="card">
+        <h3 id="score-text">0/0</h3>
+        <h1 id="q-text">Waiting for Host...</h1>
+        <div id="opt-box"></div>
+        <button id="lock-btn" style="display:none; width:100%; padding:15px; background:gold; border-radius:10px; margin-top:20px;" onclick="confirmBet()">LOCK BET (10 Tokens)</button>
     </div>
 </div>
 
-<div id="p-arena" style="display:none;">
+<div id="wallet" class="page">
     <div class="card">
-        <h3 id="batting">WAITING...</h3>
-        <div class="score" id="score-text">0/0</div>
-    </div>
-    <div class="card">
-        <h2 id="question-text">Waiting for Host to push...</h2>
-        <div id="option-box"></div>
-        <button id="lock-btn" style="display:none; width:100%; background:gold; padding:15px; margin-top:10px; border-radius:10px;" onclick="lockBet()">CONFIRM BET</button>
+        <h2>My Tokens: <span id="token-count">0</span></h2>
+        <input type="number" id="amt" placeholder="Enter Amount (₹)" style="padding:10px; width:80%; margin-top:10px;">
+        <button onclick="buy()" style="padding:15px; width:80%; background:gold; border:none; border-radius:10px; margin-top:10px; font-weight:bold;">BUY TOKENS</button>
     </div>
 </div>
 
 <div class="nav">
-    <div onclick="showPage('home')">HOME</div>
-    <div onclick="showPage('arena')">ARENA</div>
+    <div onclick="nav('home')">HOME</div>
+    <div onclick="nav('arena')">ARENA</div>
+    <div onclick="nav('wallet')">WALLET</div>
 </div>
 
 <script>
-    // 1. CONFIG (MAKE SURE THIS IS CORRECT!)
+    // USE THE EXACT SAME CONFIG AS THE HOST
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+        databaseURL: "YOUR_DATABASE_URL",
         projectId: "YOUR_PROJECT",
         storageBucket: "YOUR_PROJECT.appspot.com",
         messagingSenderId: "YOUR_ID",
         appId: "YOUR_APP"
     };
 
-    // 2. INITIALIZE
-    try {
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        document.getElementById('debug-bar').style.background = "orange";
-        document.getElementById('debug-bar').innerText = "Connecting to Database...";
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        // 3. LISTEN
-        db.ref("currentQuestion").on("value", (snap) => {
-            const data = snap.val();
-            document.getElementById('debug-bar').style.background = "green";
-            document.getElementById('debug-bar').innerText = "Live: Data Connected";
+    // Connection Check
+    db.ref(".info/connected").on("value", (snap) => {
+        const s = document.getElementById('status');
+        if (snap.val() === true) { s.innerText = "CONNECTION: LIVE"; s.style.background = "green"; }
+        else { s.innerText = "CONNECTION: OFFLINE"; s.style.background = "red"; }
+    });
 
-            if(!data) return;
-
-            document.getElementById('score-text').innerText = data.matchScore || "0/0";
-            document.getElementById('batting').innerText = data.battingTeam || "LIVE";
-            document.getElementById('question-text').innerText = data.question;
-
-            if(!data.result) {
-                render(data.options);
-            } else {
-                document.getElementById('question-text').innerText = "Winner: " + data.result;
-                document.getElementById('option-box').innerHTML = "";
-            }
-        });
-    } catch(e) {
-        document.getElementById('debug-bar').innerText = "ERROR: " + e.message;
-    }
-
-    let myChoice = "";
-    function render(opts) {
-        const box = document.getElementById('option-box');
+    // Sync Question
+    db.ref("currentQuestion").on("value", (snap) => {
+        const data = snap.val();
+        if(!data) return;
+        document.getElementById('q-text').innerText = data.question;
+        document.getElementById('score-text').innerText = data.matchScore;
+        
+        const box = document.getElementById('opt-box');
         box.innerHTML = "";
-        (opts || []).forEach(o => {
+        data.options.forEach(o => {
             const b = document.createElement('button');
             b.className = "opt-btn";
             b.innerText = o;
             b.onclick = () => {
-                myChoice = o;
-                document.querySelectorAll('.opt-btn').forEach(x => x.classList.remove('active-btn'));
-                b.classList.add('active-btn');
+                document.querySelectorAll('.opt-btn').forEach(x => x.classList.remove('selected'));
+                b.classList.add('selected');
                 document.getElementById('lock-btn').style.display = "block";
             };
             box.appendChild(b);
         });
+    });
+
+    // Wallet/Nav Logic
+    let tokens = parseInt(localStorage.getItem('tks')) || 0;
+    document.getElementById('token-count').innerText = tokens;
+
+    function buy() {
+        const val = parseInt(document.getElementById('amt').value);
+        if(val >= 50) { tokens += (val*3); localStorage.setItem('tks', tokens); document.getElementById('token-count').innerText = tokens; alert("Added!"); }
     }
 
-    function showPage(id) {
-        document.getElementById('p-home').style.display = id === 'home' ? 'block' : 'none';
-        document.getElementById('p-arena').style.display = id === 'arena' ? 'block' : 'none';
+    function nav(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
 </script>
 </body>

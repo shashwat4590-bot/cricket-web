@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Live Predictor</title>
+    <title>PredictLive Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -11,183 +11,146 @@
 
     <style>
         :root {
-            --bg: #0b0e14;
-            --card: #1c222d;
-            --primary: #00d2ff;
+            --bg: #06090f;
+            --surface: #121826;
+            --accent: #00d2ff;
             --success: #00f2a6;
             --error: #ff4b5c;
+            --text-main: #ffffff;
             --text-dim: #94a3b8;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
 
         body {
             background-color: var(--bg);
-            color: white;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            background-image: radial-gradient(circle at top right, #1e293b, #0b0e14);
+            background-image: radial-gradient(circle at 50% -20%, #1e293b, #06090f);
         }
 
         .app-container {
             width: 100%;
             max-width: 420px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            gap: 16px;
         }
 
-        /* Header & Points */
+        /* Top Header */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 10px 5px;
+            padding: 10px 4px;
         }
 
-        .brand { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--primary); }
-        
-        #scoreDisplay {
+        .logo { font-size: 1.2rem; font-weight: 900; color: var(--accent); }
+        #scoreBox {
             background: rgba(0, 210, 255, 0.1);
-            border: 1px solid var(--primary);
+            border: 1px solid rgba(0, 210, 255, 0.3);
             padding: 8px 16px;
             border-radius: 12px;
-            font-weight: 700;
-            color: var(--primary);
-            box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+            font-weight: 800;
+            color: var(--accent);
         }
 
-        /* Match Card */
-        .match-status {
-            background: var(--card);
-            border-radius: 20px;
+        /* Match Scoreboard */
+        .scoreboard {
+            background: var(--surface);
+            border-radius: 24px;
             padding: 20px;
-            margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
         }
 
-        .team { text-align: center; }
-        .team img { width: 45px; height: 45px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
-        .team-name { display: block; font-size: 0.7rem; font-weight: 700; margin-top: 5px; color: var(--text-dim); }
-        .live-dot { width: 8px; height: 8px; background: red; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1s infinite; }
+        .sb-label { font-size: 0.6rem; font-weight: 800; color: var(--accent); letter-spacing: 2px; margin-bottom: 8px; display: block; }
+        .sb-main { display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .sb-team { font-size: 1.1rem; font-weight: 800; }
+        .sb-score { font-size: 1.8rem; font-weight: 900; color: white; }
 
-        /* Prediction Area */
-        .main-card {
-            background: var(--card);
-            border-radius: 28px;
-            padding: 30px 25px;
-            position: relative;
-            overflow: hidden;
+        /* Prediction Card */
+        .card {
+            background: var(--surface);
+            border-radius: 32px;
+            padding: 28px;
             border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         #question {
             font-size: 1.3rem;
             font-weight: 700;
+            text-align: center;
             line-height: 1.4;
             margin-bottom: 25px;
-            min-height: 70px;
-            text-align: center;
+            min-height: 50px;
         }
 
-        /* Modern Timer Bar */
-        .timer-container { margin-bottom: 30px; }
-        .timer-info { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: var(--text-dim); margin-bottom: 10px; }
-        
-        .timer-bg { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-        #timerFill { 
-            height: 100%; 
-            background: linear-gradient(90deg, var(--primary), #a855f7); 
-            width: 0%; 
-            transition: width 1s linear; 
+        /* Timer bar */
+        .timer-bg { height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        #timerFill { height: 100%; background: linear-gradient(90deg, var(--accent), #a855f7); width: 0%; transition: width 1s linear; }
+
+        /* Dynamic Options Grid */
+        #optionsContainer {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
 
-        /* Action Buttons */
-        .btn-group { display: flex; gap: 15px; }
-        
-        .predict-btn {
-            flex: 1;
-            padding: 18px;
-            border: none;
+        .btn-opt {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 18px 10px;
             border-radius: 16px;
             font-size: 1rem;
-            font-weight: 800;
-            text-transform: uppercase;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.2s;
         }
 
-        .btn-yes { background: var(--success); color: #064e3b; box-shadow: 0 4px 15px rgba(0, 242, 166, 0.2); }
-        .btn-no { background: var(--error); color: #fff; box-shadow: 0 4px 15px rgba(255, 75, 92, 0.2); }
+        .btn-opt:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-opt.selected { border: 2.5px solid var(--accent); background: rgba(0, 210, 255, 0.1); }
+        .btn-opt.correct { background: var(--success) !important; color: #064e3b !important; border: none; }
+        .btn-opt.wrong { background: var(--error) !important; opacity: 0.4 !important; border: none; }
 
-        .predict-btn:disabled { opacity: 0.2; cursor: not-allowed; transform: scale(0.98); }
-        .predict-btn:active:not(:disabled) { transform: scale(0.95); }
-
-        /* Result Styles */
-        .correct-ans { background: var(--success) !important; color: #064e3b !important; transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 242, 166, 0.4); }
-        .wrong-ans { background: #2d3748 !important; opacity: 0.2 !important; color: #4a5568 !important; }
-        .selected { border: 3px solid white !important; }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        footer { text-align: center; font-size: 0.65rem; color: var(--text-dim); margin-top: auto; padding: 20px; opacity: 0.5; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <header>
-        <div class="brand">PREDICT<span style="color:white">LIVE</span></div>
-        <div id="scoreDisplay">0 PTS</div>
+        <div class="logo">PREDICT<span>LIVE</span></div>
+        <div id="scoreBox">0 PTS</div>
     </header>
 
-    <div class="match-status">
-        <div class="team">
-            <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg">
-            <span class="team-name">CSK</span>
-        </div>
-        <div style="text-align:center">
-            <span style="font-size: 0.6rem; color: var(--text-dim); font-weight: 800; letter-spacing: 2px;">LIVE MATCH</span>
-            <div style="font-weight: 900; font-style: italic; opacity: 0.2; font-size: 1.5rem;">VS</div>
-        </div>
-        <div class="team">
-            <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg">
-            <span class="team-name">MI</span>
+    <div class="scoreboard">
+        <span class="sb-label">LIVE MATCH CENTER</span>
+        <div class="sb-main">
+            <span id="battingTeam" class="sb-team">TOSS</span>
+            <span id="liveScore" class="sb-score">PENDING</span>
         </div>
     </div>
 
-    <div class="main-card">
-        <div id="question">Connecting to Match Data...</div>
-        
-        <div class="timer-container">
-            <div class="timer-info">
-                <span>VOTING WINDOW</span>
-                <span id="timerText">--</span>
-            </div>
-            <div class="timer-bg">
-                <div id="timerFill"></div>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button id="yesBtn" class="predict-btn btn-yes" onclick="answer('YES')">Yes</button>
-            <button id="noBtn" class="predict-btn btn-no" onclick="answer('NO')">No</button>
-        </div>
+    <div class="card">
+        <div id="question">Connecting to pitch...</div>
+        <div class="timer-bg"><div id="timerFill"></div></div>
+        <div id="optionsContainer"></div>
     </div>
 
-    <p style="text-align:center; color: var(--text-dim); font-size: 0.7rem; margin-top: 30px; letter-spacing: 1px;">
-        <span class="live-dot"></span> REAL-TIME SYNC ACTIVE
-    </p>
+    <footer>REAL-TIME SPORTS SYNC ACTIVE</footer>
 </div>
 
 <script>
-    // --- YOUR FIREBASE CONFIG ---
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
-        apiKey: "PASTE_API_KEY",
+        apiKey: "PASTE_YOUR_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
         databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
         projectId: "cricket-web-predict",
@@ -204,28 +167,42 @@
     let myChoice = null;
     let timer;
 
-    document.getElementById("scoreDisplay").innerText = score + " PTS";
+    document.getElementById("scoreBox").innerText = score + " PTS";
 
     qRef.on("value", (snap) => {
         const val = snap.val();
         if (!val) {
-            document.getElementById("question").innerText = "Match Paused";
+            document.getElementById("question").innerText = "Waiting for next question...";
+            document.getElementById("optionsContainer").innerHTML = "";
             return;
         }
 
+        // Update Scoreboard
+        document.getElementById("liveScore").innerText = val.matchScore || "--";
+        document.getElementById("battingTeam").innerText = val.battingTeam || "TOSS";
         document.getElementById("question").innerText = val.question;
 
+        // Generate Buttons
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+        if (val.options) {
+            val.options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "btn-opt";
+                btn.innerText = opt;
+                btn.id = "opt-" + opt;
+                btn.onclick = () => submitVote(opt);
+                container.appendChild(btn);
+            });
+        }
+
+        // State Check
         if (!val.result) {
             myChoice = null;
-            resetUI();
-            if (val.status === "open") {
-                startTimer(val.endTime);
-            } else {
-                disableAll();
-                document.getElementById("timerText").innerText = "CLOSED";
-            }
+            if (val.status === "open") startTimer(val.endTime);
+            else lockAll();
         } else {
-            showResult(val.result);
+            revealResult(val.result, val.options);
         }
     });
 
@@ -234,54 +211,39 @@
         timer = setInterval(() => {
             const diff = endTime - Date.now();
             const sec = Math.max(0, Math.floor(diff / 1000));
-            document.getElementById("timerText").innerText = sec + "s";
-            document.getElementById("timerFill").style.width = (sec * 10) + "%";
-            if (sec <= 0) {
-                clearInterval(timer);
-                disableAll();
-                document.getElementById("timerText").innerText = "LOCKED";
-            }
+            document.getElementById("timerFill").style.width = Math.min(100, (sec * 5)) + "%";
+            if (sec <= 0) { clearInterval(timer); lockAll(); }
         }, 1000);
     }
 
-    function answer(choice) {
+    function submitVote(choice) {
         if (myChoice) return;
         myChoice = choice;
-        if (navigator.vibrate) navigator.vibrate(40);
-        disableAll();
-        document.getElementById(choice === 'YES' ? 'yesBtn' : 'noBtn').classList.add("selected");
+        if (navigator.vibrate) navigator.vibrate(50);
+        document.getElementById("opt-" + choice).classList.add("selected");
+        lockAll();
     }
 
-    function showResult(correct) {
+    function revealResult(correct, options) {
         clearInterval(timer);
-        disableAll();
-        const y = document.getElementById("yesBtn");
-        const n = document.getElementById("noBtn");
-
-        if (correct === "YES") { y.classList.add("correct-ans"); n.classList.add("wrong-ans"); }
-        else { n.classList.add("correct-ans"); y.classList.add("wrong-ans"); }
+        lockAll();
+        options.forEach(opt => {
+            const btn = document.getElementById("opt-" + opt);
+            if (opt === correct) btn.classList.add("correct");
+            else if (opt === myChoice) btn.classList.add("wrong");
+        });
 
         if (myChoice === correct) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#00d2ff', '#00f2a6'] });
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
             score += 100;
             localStorage.setItem("c_score", score);
-            document.getElementById("scoreDisplay").innerText = score + " PTS";
+            document.getElementById("scoreBox").innerText = score + " PTS";
             myChoice = "done";
         }
     }
 
-    function disableAll() {
-        document.getElementById("yesBtn").disabled = true;
-        document.getElementById("noBtn").disabled = true;
-    }
-
-    function resetUI() {
-        const y = document.getElementById("yesBtn");
-        const n = document.getElementById("noBtn");
-        y.disabled = false; n.disabled = false;
-        y.classList.remove("correct-ans", "wrong-ans", "selected");
-        n.classList.remove("correct-ans", "wrong-ans", "selected");
-        document.getElementById("timerText").innerText = "";
+    function lockAll() {
+        document.querySelectorAll(".btn-opt").forEach(b => b.disabled = true);
     }
 </script>
 </body>

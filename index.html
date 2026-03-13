@@ -258,30 +258,35 @@
     // Initialize UI
     document.getElementById("scoreDisplay").innerText = userScore + " PTS";
 
-   // --- UPDATE THIS SECTION IN index.html ---
-questionRef.on("value", (snapshot) => {
+  questionRef.on("value", (snapshot) => {
     const data = snapshot.val();
     
-    // If data is null or empty, show the "Waiting" screen
+    // 1. If host cleared the board
     if (!data) {
         showWaitingScreen();
         return;
     }
 
-    document.getElementById("question").innerText = data.question;
-    const hasResult = data.hasOwnProperty('result') && data.result !== null;
+    // 2. DETECT NEW QUESTION: If result is null, it's a new round.
+    if (data.result === null) {
+        // Force reset the player's local state
+        hasVoted = false; 
+        selectedChoice = null;
+        
+        // Reset the UI immediately
+        resetButtonsUI(); 
+        document.getElementById("question").innerText = data.question;
 
-    if (!hasResult) {
         if (data.status === "open") {
-            if (selectedChoice === null) {
-                resetButtonsUI();
-                startTimer(data.endTime);
-            }
+            startTimer(data.endTime);
         } else if (data.status === "locked") {
             lockButtons();
             document.getElementById("timerText").innerText = "LOCKED";
         }
-    } else {
+    } 
+    
+    // 3. IF RESULT ARRIVES
+    else if (data.result !== null) {
         handleResult(data.result);
     }
 });

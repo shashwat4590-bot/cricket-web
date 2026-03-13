@@ -241,17 +241,22 @@
         alert("🎯 Correct! 20 Tokens added to your wallet.");
     }
 });
+    
     function confirmBet() {
-        if(tokens < 10) return alert("Not enough tokens!");
-        tokens -= 10;
-        updateBalanceDisplay();
-        localStorage.setItem('isLocked', 'true');
-        localStorage.setItem('myPick', window.pick); // Save pick for payout check
-        document.getElementById('lock-btn').style.display = "none";
-        document.getElementById('lock-msg').style.display = "block";
-        document.getElementById('lock-msg').innerText = "Locked on: " + window.pick;
-    }
-
+    if(tokens < 10) return alert("Not enough tokens!");
+    
+    tokens -= 10;
+    localStorage.setItem('tks', tokens); // Save the deduction
+    updateBalanceDisplay();
+    
+    localStorage.setItem('isLocked', 'true');
+    localStorage.setItem('myPick', window.pick); // This must match the winner exactly
+    localStorage.setItem('paid', 'false'); // Ready for payout
+    
+    document.getElementById('lock-btn').style.display = "none";
+    document.getElementById('lock-msg').style.display = "block";
+    document.getElementById('lock-msg').innerText = "Prediction Locked: " + window.pick;
+}
     // Economy Logic
     let tokens = parseInt(localStorage.getItem('tks')) || 0;
     updateBalanceDisplay();

@@ -1,44 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PredictLive ADMIN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PredictLive | Host Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root { --primary: #38bdf8; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .q-card { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid #334155; transition: 0.2s; cursor: pointer; }
+        .q-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .q-card h4 { margin: 0 0 10px 0; color: var(--primary); }
+        .controls { background: #020617; padding: 20px; border-radius: 15px; position: sticky; top: 10px; z-index: 100; border: 2px solid var(--primary); margin-bottom: 30px; }
+        input, select { background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 5px; width: 100%; margin-bottom: 10px; }
+        button { background: var(--primary); color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        .status-badge { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+        .live { background: #22c55e; color: black; }
+    </style>
 </head>
-<body style="background:#111; color:white; font-family:sans-serif; padding:20px;">
-    <h2>ADMIN PANEL</h2>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <div class="status-badge live" id="db-status">Firebase: Connecting...</div>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="active-q" placeholder="Question Text">
+            <input type="text" id="active-score" placeholder="Score (e.g. 145/3)">
+        </div>
+        <input type="text" id="active-opts" placeholder="Options (comma separated)">
+        <button onclick="deployCurrent()">🚀 DEPLOY TO PLAYERS</button>
+        
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <input type="text" id="win-val" placeholder="Winning Result" style="margin-bottom:0">
+            <button onclick="declareWinner()" style="background: #fbbf24; width: 150px;">SET WINNER</button>
+        </div>
+    </div>
+
+    <h3>Pre-built Match Scenarios</h3>
+    <div class="grid" id="preset-grid"></div>
+</div>
+
+<script>
+    // YOUR VERIFIED CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE",
+        authDomain: "cricket-web-predict.firebaseapp.com",
+        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
+        projectId: "cricket-web-predict",
+        storageBucket: "cricket-web-predict.firebasestorage.app",
+        messagingSenderId: "500705236300",
+        appId: "1:500705236300:web:1d28b90643d9288700abe9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     
-    <script>
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_ID",
-            appId: "YOUR_APP"
+    db.ref(".info/connected").on("value", (snap) => {
+        document.getElementById('db-status').innerText = snap.val() ? "Firebase: Connected" : "Firebase: Offline";
+    });
+
+    const presets = [
+        { q: "Result of the next ball?", o: "Dot,1-3 Runs,4 or 6,Wicket" },
+        { q: "How many runs in this over?", o: "0-5,6-10,11-15,16+" },
+        { q: "Will there be a boundary in next 3 balls?", o: "Yes,No" },
+        { q: "How will the next wicket fall?", o: "Caught,Bowled/LBW,Run Out,No Wicket" },
+        { q: "Which team wins the Powerplay?", o: "CSK,MI,Tie" },
+        { q: "Total Match Sixes?", o: "Under 12,12-18,Over 18" },
+        { q: "Next Batsman to get out?", o: "Striker,Non-Striker,Neither" },
+        { q: "Runs off the Free Hit?", o: "0-1,2-4,6,Wicket" },
+        { q: "Will the current partnership reach 50?", o: "Yes,No" },
+        { q: "Third Umpire Decision?", o: "Out,Not Out" },
+        { q: "Match Result?", o: "CSK Win,MI Win,Super Over" }
+    ];
+
+    const grid = document.getElementById('preset-grid');
+    presets.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'q-card';
+        div.innerHTML = `<h4>${p.q}</h4><small>${p.o}</small>`;
+        div.onclick = () => {
+            document.getElementById('active-q').value = p.q;
+            document.getElementById('active-opts').value = p.o;
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        grid.appendChild(div);
+    });
 
-        function sendData() {
-            const q = document.getElementById('qIn').value;
-            const score = document.getElementById('sIn').value;
-            const opt = document.getElementById('oIn').value.split(',');
+    function deployCurrent() {
+        const q = document.getElementById('active-q').value;
+        const s = document.getElementById('active-score').value;
+        const o = document.getElementById('active-opts').value.split(',');
 
-            db.ref("currentQuestion").set({
-                question: q,
-                matchScore: score,
-                options: opt,
-                status: "open",
-                timestamp: Date.now()
-            }).then(() => alert("PUSHED TO PLAYER!"));
-        }
-    </script>
+        if(!q || !o) return alert("Fill question and options!");
 
-    <input type="text" id="qIn" placeholder="Question" style="width:100%; padding:10px; margin-bottom:10px;">
-    <input type="text" id="sIn" placeholder="Score" style="width:100%; padding:10px; margin-bottom:10px;">
-    <input type="text" id="oIn" placeholder="Options (comma separated: Yes,No)" style="width:100%; padding:10px; margin-bottom:10px;">
-    <button onclick="sendData()" style="width:100%; padding:15px; background:cyan; font-weight:bold;">PUSH TO PLAYER</button>
+        db.ref("currentQuestion").set({
+            question: q,
+            matchScore: s || "LIVE",
+            options: o.map(item => item.trim()),
+            timestamp: Date.now(),
+            result: null
+        }).then(() => alert("DEPLOYED!"));
+    }
+
+    function declareWinner() {
+        const win = document.getElementById('win-val').value;
+        if(!win) return alert("Enter the winning option!");
+        db.ref("currentQuestion/result").set(win).then(() => alert("WINNER SET!"));
+    }
+</script>
 </body>
 </html>

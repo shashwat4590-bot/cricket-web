@@ -3,239 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Elite</title>
+    <title>PredictLive Elite Pro</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&display=swap');
+        
         :root {
-            --bg: #04070d; --card: #111827; --accent: #00d2ff;
-            --success: #00f2a6; --error: #ff4b5c; --gold: #f59e0b;
+            --bg: #020617;
+            --card: #0f172a;
+            --accent: #38bdf8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --gold: #fbbf24;
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        body { background-color: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: white; 
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 70%);
+        }
+
+        /* Responsive Layout */
+        .app-shell {
+            width: 100%;
+            max-width: 600px; /* Better for PC */
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
         /* Navigation Bar */
         .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: #111827;
-            display: flex; justify-content: space-around; padding: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 600px; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px); display: flex; justify-content: space-around; 
+            padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;
         }
-        .nav-item { color: #94a3b8; font-size: 0.7rem; font-weight: 800; cursor: pointer; text-align: center; }
-        .nav-item.active { color: var(--accent); }
+        .nav-item { color: #64748b; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-align: center; transition: 0.3s; }
+        .nav-item.active { color: var(--accent); transform: translateY(-5px); }
 
-        .page { display: none; padding: 20px; padding-bottom: 80px; animation: fadeIn 0.3s; }
+        .page { display: none; padding: 30px 20px 120px; animation: slideUp 0.4s ease-out; }
         .page.active { display: flex; flex-direction: column; align-items: center; }
 
         /* --- HOME PAGE --- */
         .hero-banner {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1000');
-            background-size: cover; width: 100%; max-width: 400px; border-radius: 30px; padding: 30px;
-            border: 1px solid rgba(255,255,255,0.1); margin-top: 20px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            width: 100%; border-radius: 40px; padding: 40px;
+            border: 1px solid rgba(56, 189, 248, 0.2); margin-top: 20px;
+            text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
-        .team-box { display: flex; justify-content: space-around; align-items: center; margin: 25px 0; }
-        .team-box img { width: 70px; height: 70px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        .match-title { font-size: 2rem; font-weight: 900; margin-bottom: 10px; }
+        .team-row { display: flex; justify-content: space-between; align-items: center; margin: 40px 0; }
+        .team-logo { width: 100px; height: 100px; object-fit: contain; }
+        .vs-text { font-size: 1.5rem; font-weight: 900; color: var(--accent); opacity: 0.5; }
 
-        /* --- WALLET PAGE --- */
-        .wallet-card { background: var(--card); width: 100%; max-width: 400px; border-radius: 25px; padding: 25px; border: 1px solid #334155; }
-        .token-balance { font-size: 2.5rem; font-weight: 900; color: var(--gold); margin: 10px 0; }
-        .input-group { margin-top: 20px; width: 100%; }
-        input { background: #04070d; border: 1px solid #334155; padding: 15px; border-radius: 12px; color: white; width: 100%; font-size: 1rem; margin-bottom: 10px; }
-        .buy-btn { background: var(--gold); color: black; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 100%; cursor: pointer; }
+        /* --- WALLET --- */
+        .wallet-card { 
+            background: var(--card); width: 100%; border-radius: 35px; padding: 40px; 
+            border: 1px solid rgba(251, 191, 36, 0.3); text-align: center;
+        }
+        .token-val { font-size: 4rem; font-weight: 900; color: var(--gold); }
+        input { 
+            background: #020617; border: 2px solid #334155; padding: 20px; 
+            border-radius: 20px; color: white; width: 100%; font-size: 1.2rem; margin: 20px 0;
+            text-align: center;
+        }
 
         /* --- ARENA --- */
-        .scoreboard { background: var(--card); border-radius: 20px; padding: 20px; width: 100%; border: 1px solid #334155; margin-bottom: 15px; text-align: center; }
-        .predict-card { background: var(--card); border-radius: 25px; padding: 30px 20px; width: 100%; border: 1px solid #334155; text-align: center; }
-        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
-        .opt-btn { background: #1f2937; border: 1px solid #374151; color: white; padding: 20px 10px; border-radius: 15px; font-weight: 700; cursor: pointer; }
-        .opt-btn.selected { border: 2px solid var(--accent); background: rgba(0,210,255,0.1); }
-        .opt-btn.correct { background: var(--success) !important; color: #064e3b !important; }
-        .opt-btn.wrong { background: var(--error) !important; }
+        .scoreboard { 
+            background: rgba(255, 255, 255, 0.03); border-radius: 30px; padding: 30px; 
+            width: 100%; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px; 
+            text-align: center;
+        }
+        .live-score-text { font-size: 3rem; font-weight: 900; letter-spacing: -2px; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .predict-card { 
+            background: var(--card); border-radius: 40px; padding: 40px 30px; 
+            width: 100%; border: 1px solid #1e293b; text-align: center;
+        }
+        #question { font-size: 1.6rem; font-weight: 700; min-height: 80px; margin-bottom: 30px; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+        .opt-btn { 
+            background: #1e293b; border: 1px solid #334155; color: white; 
+            padding: 25px 15px; border-radius: 25px; font-size: 1.1rem; font-weight: 700; cursor: pointer;
+        }
+        .opt-btn.selected { border: 3px solid var(--accent); background: rgba(56, 189, 248, 0.1); }
+        .opt-btn.correct { background: var(--success) !important; color: #052e16 !important; }
+        .opt-btn.wrong { background: var(--error) !important; opacity: 0.5; }
+
+        /* --- LOCK BET BUTTON --- */
+        #lockBetBtn {
+            display: none; width: 100%; background: var(--accent); color: #082f49;
+            padding: 20px; border-radius: 20px; border: none; font-size: 1.2rem;
+            font-weight: 900; margin-top: 25px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
+        }
+
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
+<div class="app-shell">
+    
     <div id="home" class="page active">
-        <h2 style="color:var(--accent); margin-top:10px;">PREDICT<span style="color:white">LIVE</span></h2>
+        <h1 style="color: var(--accent); font-size: 2.5rem; font-weight: 900;">PREDICT<span style="color:white">LIVE</span></h1>
         <div class="hero-banner">
-            <span style="color:var(--gold); font-weight:800; letter-spacing:2px; font-size:0.7rem;">UPCOMING MATCH</span>
-            <div class="team-box">
+            <p style="color:var(--gold); font-weight:800; letter-spacing:3px;">TONIGHT'S CLASH</p>
+            <div class="team-row">
                 <div>
-                    <img src="https://creativereview.imgix.net/content/uploads/2019/04/IPL_Logo.png?auto=compress,format&q=60&w=1200&h=675" id="logo1">
-                    <p style="font-weight:900;">CSK</p>
+                    <img src="https://www.iplt20.com/assets/images/csk-v2.png" class="team-logo">
+                    <p style="font-size:1.5rem; font-weight:900; margin-top:10px;">CSK</p>
                 </div>
-                <div style="font-weight:900; opacity:0.3;">VS</div>
+                <div class="vs-text">VS</div>
                 <div>
-                    <img src="https://creativereview.imgix.net/content/uploads/2019/04/IPL_Logo.png?auto=compress,format&q=60&w=1200&h=675" id="logo2">
-                    <p style="font-weight:900;">MI</p>
+                    <img src="https://www.iplt20.com/assets/images/mi-v2.png" class="team-logo">
+                    <p style="font-size:1.5rem; font-weight:900; margin-top:10px;">MI</p>
                 </div>
             </div>
-            <button onclick="nav('arena')" style="background:var(--accent); color:black; border:none; padding:15px; border-radius:12px; font-weight:900; width:100%; cursor:pointer;">JOIN ARENA</button>
+            <button onclick="nav('arena')" style="background:white; color:black; border:none; padding:20px; border-radius:20px; font-weight:900; width:100%; cursor:pointer; font-size:1.1rem;">JOIN THE ACTION</button>
         </div>
+        <p style="margin-top:40px; color:#64748b; text-align:center; line-height:1.6;">Predict every ball, every wicket, and every boundary live to win massive rewards!</p>
     </div>
 
     <div id="wallet" class="page">
-        <h2 style="margin-bottom:20px;">MY WALLET</h2>
+        <h2 style="font-size: 2rem; margin-bottom: 30px;">MY WALLET</h2>
         <div class="wallet-card">
-            <p style="font-size:0.8rem; color:#94a3b8;">Available Tokens</p>
-            <div class="token-balance" id="balanceText">0</div>
-            <div class="input-group">
-                <label style="font-size:0.7rem; color:var(--gold);">ENTER AMOUNT (₹)</label>
-                <input type="number" id="cashInput" placeholder="Min ₹50" min="50">
-                <p style="font-size:0.7rem; color:#94a3b8; margin-bottom:10px;">You will receive: <span id="tokenPreview" style="color:white">0</span> Tokens</p>
-                <button class="buy-btn" onclick="processBuy()">BUY TOKENS</button>
+            <p style="font-weight:700; color:#94a3b8;">TOTAL TOKENS</p>
+            <div class="token-val" id="balanceText">0</div>
+            <div style="margin-top:30px;">
+                <label style="color:var(--gold); font-weight:800; font-size:0.9rem;">RECHARGE AMOUNT (₹)</label>
+                <input type="number" id="cashInput" placeholder="Minimum ₹50">
+                <button onclick="processBuy()" style="background:var(--gold); color:black; border:none; padding:20px; border-radius:20px; font-weight:900; width:100%; font-size:1.1rem; cursor:pointer;">ADD TOKENS</button>
             </div>
         </div>
     </div>
 
     <div id="arena" class="page">
         <div class="scoreboard">
-            <span style="font-size:0.6rem; color:var(--accent); font-weight:800; letter-spacing:2px;">LIVE MATCH DATA</span>
-            <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-top:10px;">
-                <span id="batTeam" style="font-weight:900; font-size:1.1rem;">--</span>
-                <span id="liveScore" style="font-size:2rem; font-weight:900;">0/0</span>
+            <p style="color:var(--accent); font-weight:800; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;">MATCH STATUS</p>
+            <div style="display:flex; justify-content:center; align-items:center; gap:30px;">
+                <span id="batTeam" style="font-size:1.5rem; font-weight:900;">TOSS</span>
+                <span id="liveScore" class="live-score-text">0/0</span>
             </div>
         </div>
         <div class="predict-card">
-            <div id="question" style="font-weight:800;">Waiting for host...</div>
+            <div id="question">Connecting to Match...</div>
             <div id="optionsContainer" class="options-grid"></div>
-            <div id="lockedMsg" style="display:none; margin-top:20px; color:var(--accent); font-size:0.8rem;"></div>
+            <button id="lockBetBtn" onclick="confirmBet()">LOCK MY BET (10 Tokens)</button>
+            <p id="lockStatus" style="display:none; margin-top:20px; font-weight:700; color:var(--accent);"></p>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" id="nav-home" onclick="nav('home')">🏠<br>HOME</div>
-        <div class="nav-item" id="nav-arena" onclick="nav('arena')">🏏<br>ARENA</div>
-        <div class="nav-item" id="nav-wallet" onclick="nav('wallet')">💰<br>WALLET</div>
+        <div class="nav-item active" id="nav-home" onclick="nav('home')">HOME</div>
+        <div class="nav-item" id="nav-arena" onclick="nav('arena')">ARENA</div>
+        <div class="nav-item" id="nav-wallet" onclick="nav('wallet')">WALLET</div>
     </div>
 
+</div>
+
 <script>
-    // --- FIREBASE CONFIG (CRITICAL: MUST MATCH HOST) ---
+    // --- FIREBASE CONFIG (MUST MATCH YOUR HOST) ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
-        authDomain: "cricket-web-predict.firebaseapp.com",
-        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
-        projectId: "cricket-web-predict",
-        storageBucket: "cricket-web-predict.appspot.com",
-        messagingSenderId: "SENDER_ID",
-        appId: "APP_ID"
+        authDomain: "YOUR_DOMAIN",
+        databaseURL: "YOUR_URL",
+        projectId: "YOUR_ID",
+        storageBucket: "YOUR_BUCKET",
+        messagingSenderId: "YOUR_SENDER",
+        appId: "YOUR_APP"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const qRef = db.ref("currentQuestion");
 
-    // --- NAVIGATION LOGIC ---
-    function nav(pageId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
-        document.getElementById('nav-' + pageId).classList.add('active');
-    }
-
-    // --- WALLET LOGIC ---
     let tokens = parseInt(localStorage.getItem("user_tokens")) || 0;
     document.getElementById('balanceText').innerText = tokens;
 
-    document.getElementById('cashInput').addEventListener('input', (e) => {
-        const val = e.target.value || 0;
-        document.getElementById('tokenPreview').innerText = val * 3;
-    });
+    let selectedTemp = null; // Stored before locking
+    let lastQuestionKey = ""; // Track if question changed
 
-    function processBuy() {
-        const amt = parseInt(document.getElementById('cashInput').value);
-        if(amt < 50) { alert("Minimum purchase is ₹50"); return; }
-        tokens += (amt * 3);
-        localStorage.setItem("user_tokens", tokens);
-        document.getElementById('balanceText').innerText = tokens;
-        alert("Tokens added successfully!");
+    function nav(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('nav-' + id).classList.add('active');
     }
 
-    // --- LOGO RECOVERY ---
-    // Using backup images if primary fails
-    const cskLogo = "https://hatchpro.club/images/csk.png"; 
-    const miLogo = "https://hatchpro.club/images/mi.png";
-    document.getElementById('logo1').src = cskLogo;
-    document.getElementById('logo2').src = miLogo;
+    function processBuy() {
+        const val = parseInt(document.getElementById('cashInput').value);
+        if(val < 50) return alert("Min ₹50 required");
+        tokens += (val * 3);
+        saveTokens();
+        alert("Tokens Added!");
+    }
 
-    // --- LIVE ARENA SYNC ---
-    let myChoice = null;
-    
+    function saveTokens() {
+        localStorage.setItem("user_tokens", tokens);
+        document.getElementById('balanceText').innerText = tokens;
+    }
+
+    // --- LIVE ARENA ---
     qRef.on("value", (snap) => {
         const data = snap.val();
         if (!data) return;
 
-        // Force Question Deployment
-        document.getElementById("liveScore").innerText = data.matchScore || "LIVE";
-        document.getElementById("batTeam").innerText = data.battingTeam || "TOSS";
-        document.getElementById("question").innerText = data.question;
-
-        const container = document.getElementById("optionsContainer");
-        container.innerHTML = "";
-        
-        if (data.options) {
-            // Remove "DRAW" and map buttons
-            data.options.filter(o => o !== "DRAW").forEach(opt => {
-                const btn = document.createElement("button");
-                btn.className = "opt-btn";
-                btn.innerText = opt;
-                btn.id = "btn-" + opt;
-                btn.onclick = () => handlePredict(opt);
-                container.appendChild(btn);
-            });
+        // CHECK IF IT'S A NEW QUESTION
+        const currentKey = data.question + data.status; 
+        if(currentKey !== lastQuestionKey) {
+            resetPlayerState(); // Reset UI for the new question
+            lastQuestionKey = currentKey;
         }
 
+        document.getElementById("liveScore").innerText = data.matchScore || "0/0";
+        document.getElementById("batTeam").innerText = data.battingTeam || "LIVE";
+        document.getElementById("question").innerText = data.question;
+
         if (!data.result) {
-            if (myChoice) {
-                applySelectionUI();
-            } else {
-                document.getElementById('lockedMsg').style.display = "none";
-            }
+            renderOptions(data.options);
         } else {
-            revealResult(data.result, data.options);
+            showResult(data.result, data.options);
         }
     });
 
-    function handlePredict(choice) {
-        if(tokens < 10) { alert("Insufficient tokens!"); return; }
-        myChoice = choice;
+    function renderOptions(options) {
+        if (!options) return;
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+        
+        options.filter(o => o !== "DRAW").forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "opt-btn";
+            if(selectedTemp === opt) btn.classList.add("selected");
+            btn.innerText = opt;
+            btn.onclick = () => selectOption(opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function selectOption(opt) {
+        if (localStorage.getItem("bet_locked") === "true") return;
+        selectedTemp = opt;
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+        event.target.classList.add('selected');
+        document.getElementById("lockBetBtn").style.display = "block";
+    }
+
+    function confirmBet() {
+        if (tokens < 10) return alert("Low Tokens!");
+        
         tokens -= 10;
-        localStorage.setItem("user_tokens", tokens);
-        document.getElementById('balanceText').innerText = tokens;
-        applySelectionUI();
+        saveTokens();
+        localStorage.setItem("bet_locked", "true");
+        localStorage.setItem("my_selection", selectedTemp);
+        
+        applyLockUI();
     }
 
-    function applySelectionUI() {
-        const btn = document.getElementById("btn-" + myChoice);
-        if(btn) btn.classList.add("selected");
-        document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
-        const lock = document.getElementById('lockedMsg');
-        lock.style.display = "block";
-        lock.innerText = `Prediction Locked: ${myChoice}. Waiting for result...`;
+    function applyLockUI() {
+        document.getElementById("lockBetBtn").style.display = "none";
+        document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+        const status = document.getElementById("lockStatus");
+        status.style.display = "block";
+        status.innerText = "BET LOCKED ON: " + selectedTemp;
     }
 
-    function revealResult(win, opts) {
-        document.getElementById('lockedMsg').style.display = "none";
-        opts.forEach(o => {
-            const b = document.getElementById("btn-" + o);
-            if(b) {
-                if(o === win) b.classList.add("correct");
-                else if(o === myChoice) b.classList.add("wrong");
-            }
+    function showResult(correct, options) {
+        const myBet = localStorage.getItem("my_selection");
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+
+        options.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "opt-btn";
+            btn.innerText = opt;
+            if(opt === correct) btn.classList.add("correct");
+            else if(opt === myBet) btn.classList.add("wrong");
+            container.appendChild(btn);
         });
 
-        if(myChoice === win) {
-            confetti({ particleCount: 100, spread: 70 });
-            tokens += 30; // 3x return
-            localStorage.setItem("user_tokens", tokens);
-            document.getElementById('balanceText').innerText = tokens;
+        if (myBet === correct && localStorage.getItem("bet_processed") !== lastQuestionKey) {
+            confetti({ particleCount: 150 });
+            tokens += 30;
+            saveTokens();
+            localStorage.setItem("bet_processed", lastQuestionKey);
         }
-        myChoice = null; // Reset for next ball
+    }
+
+    function resetPlayerState() {
+        selectedTemp = null;
+        localStorage.setItem("bet_locked", "false");
+        localStorage.setItem("my_selection", "");
+        document.getElementById("lockStatus").style.display = "none";
+        document.getElementById("lockBetBtn").style.display = "none";
     }
 </script>
 </body>

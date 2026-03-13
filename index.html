@@ -11,25 +11,19 @@
 
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --accent-primary: #38bdf8;
-            --accent-success: #22c55e;
-            --accent-error: #ef4444;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #38bdf8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --text: #f8fafc;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             justify-content: center;
             min-height: 100vh;
@@ -39,12 +33,10 @@
             width: 100%;
             max-width: 450px;
             background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            position: relative;
             display: flex;
             flex-direction: column;
         }
 
-        /* Top Navigation */
         header {
             padding: 20px;
             display: flex;
@@ -53,88 +45,60 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .logo {
-            font-weight: 800;
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
-            color: var(--accent-primary);
-        }
+        .logo { font-weight: 800; font-size: 1.1rem; color: var(--primary); letter-spacing: 1px; }
 
         #scoreDisplay {
             background: rgba(56, 189, 248, 0.1);
-            border: 1px solid var(--accent-primary);
+            border: 1px solid var(--primary);
             padding: 6px 14px;
             border-radius: 99px;
             font-size: 0.85rem;
             font-weight: 700;
-            color: var(--accent-primary);
+            color: var(--primary);
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
 
         /* Match Banner */
-        .match-card {
+        .match-banner {
             margin: 20px;
-            padding: 20px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .team-box { text-align: center; }
-        .team-box img { width: 55px; height: 55px; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .team-box span { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-dim); }
-        .vs-badge { font-weight: 900; font-style: italic; color: var(--text-dim); opacity: 0.5; }
+        .team img { width: 50px; height: 50px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        .vs { font-weight: 900; opacity: 0.3; font-style: italic; }
 
         /* Prediction Card */
-        .prediction-area {
+        .prediction-card {
             margin: 0 20px;
-            padding: 24px;
-            background: var(--card-bg);
+            padding: 25px;
+            background: var(--card);
             border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
         }
 
         #question {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 20px;
             text-align: center;
+            margin-bottom: 20px;
             min-height: 60px;
         }
 
-        .timer-container { margin-bottom: 25px; }
-        .timer-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            margin-bottom: 8px;
-            color: var(--text-dim);
-            font-weight: 600;
-        }
-        
-        .progress-bg {
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #38bdf8, #818cf8);
-            width: 0%;
-            transition: width 0.5s linear;
-        }
+        /* Timer Section */
+        .timer-box { margin-bottom: 25px; }
+        .timer-info { display: flex; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
+        .bar-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s linear; }
 
-        /* Action Buttons */
+        /* Buttons */
         .btn-group { display: flex; gap: 12px; }
-        
-        .predict-btn {
+        .btn {
             flex: 1;
             padding: 16px;
             border: none;
@@ -142,51 +106,18 @@
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        .btn-yes { background: var(--accent-success); color: #052e16; }
-        .btn-no { background: var(--accent-error); color: #ffffff; }
+        .btn-yes { background: var(--success); color: #052e16; }
+        .btn-no { background: var(--error); color: white; }
+        .btn:disabled { cursor: not-allowed; }
 
-        .predict-btn:disabled { cursor: not-allowed; opacity: 0.3; }
-
-        /* Status States */
-        .locked-in {
-            outline: 3px solid white;
-            outline-offset: 2px;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        }
-
-        .correct { 
-            background: var(--accent-success) !important; 
-            color: white !important;
-            opacity: 1 !important;
-            animation: pulse 1s infinite;
-        }
-        
-        .wrong { 
-            background: #334155 !important; 
-            opacity: 0.2 !important; 
-            color: #94a3b8 !important;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 30px;
-            text-align: center;
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-        }
+        /* Status Animations */
+        .locked-in { outline: 3px solid white; outline-offset: 2px; }
+        .correct { background: var(--success) !important; color: white !important; opacity: 1 !important; transform: scale(1.05); }
+        .wrong { background: #334155 !important; opacity: 0.3 !important; }
     </style>
 </head>
 <body>
@@ -197,44 +128,36 @@
         <div id="scoreDisplay">0 PTS</div>
     </header>
 
-    <div class="match-card">
-        <div class="team-box">
-            <img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg" alt="CSK">
-            <span>CSK</span>
-        </div>
-        <div class="vs-badge">VS</div>
-        <div class="team-box">
-            <img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg" alt="MI">
-            <span>MI</span>
-        </div>
+    <div class="match-banner">
+        <div class="team"><img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg"></div>
+        <div class="vs">VS</div>
+        <div class="team"><img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg"></div>
     </div>
 
-    <div class="prediction-area">
-        <div id="question">Connecting to live feed...</div>
+    <div class="prediction-card">
+        <div id="question">Connecting to Match...</div>
         
-        <div class="timer-container">
-            <div class="timer-label">
-                <span>TIME REMAINING</span>
-                <span id="timerText">0s</span>
+        <div class="timer-box">
+            <div class="timer-info">
+                <span>VOTING STATUS</span>
+                <span id="timerText">--</span>
             </div>
-            <div class="progress-bg">
-                <div class="progress-fill" id="timerFill"></div>
-            </div>
+            <div class="bar-bg"><div class="bar-fill" id="timerFill"></div></div>
         </div>
 
         <div class="btn-group">
-            <button id="yesBtn" class="predict-btn btn-yes" onclick="answer('YES')">Yes</button>
-            <button id="noBtn" class="predict-btn btn-no" onclick="answer('NO')">No</button>
+            <button id="yesBtn" class="btn btn-yes" onclick="answer('YES')">Yes</button>
+            <button id="noBtn" class="btn btn-no" onclick="answer('NO')">No</button>
         </div>
     </div>
 
-    <footer>
-        POWERED BY REAL-TIME DATA
+    <footer style="margin-top:auto; padding:30px; text-align:center; font-size:0.7rem; color:#475569;">
+        SYNCED WITH LIVE BROADCAST
     </footer>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- FIREBASE CONFIGURATION ---
     const firebaseConfig = {
         apiKey: "PASTE_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -249,100 +172,87 @@
     const db = firebase.database();
     const questionRef = db.ref("currentQuestion");
 
-    // --- APP STATE ---
+    // --- GAME STATE ---
     let userScore = parseInt(localStorage.getItem("cricketScore")) || 0;
     let hasVoted = false;
     let selectedChoice = null;
     let timerInterval;
 
-    // Initialize UI
     document.getElementById("scoreDisplay").innerText = userScore + " PTS";
 
-  questionRef.on("value", (snapshot) => {
-    const data = snapshot.val();
-    
-    // 1. If host cleared the board
-    if (!data) {
-        showWaitingScreen();
-        return;
-    }
-
-    // 2. DETECT NEW QUESTION: If result is null, it's a new round.
-    if (data.result === null) {
-        // Force reset the player's local state
-        hasVoted = false; 
-        selectedChoice = null;
+    // --- THE MASTER LISTENER (No Refresh Needed) ---
+    questionRef.on("value", (snapshot) => {
+        const data = snapshot.val();
         
-        // Reset the UI immediately
-        resetButtonsUI(); 
-        document.getElementById("question").innerText = data.question;
-
-        if (data.status === "open") {
-            startTimer(data.endTime);
-        } else if (data.status === "locked") {
-            lockButtons();
-            document.getElementById("timerText").innerText = "LOCKED";
+        // 1. If Board is Cleared by Host
+        if (!data) {
+            document.getElementById("question").innerText = "Waiting for next ball...";
+            document.getElementById("timerText").innerText = "STAY TUNED";
+            document.getElementById("timerFill").style.width = "0%";
+            disableButtons();
+            return;
         }
-    } 
-    
-    // 3. IF RESULT ARRIVES
-    else if (data.result !== null) {
-        handleResult(data.result);
-    }
-});
 
-// New Helper Function
-function showWaitingScreen() {
-    clearInterval(timerInterval);
-    document.getElementById("question").innerText = "Waiting for next ball...";
-    document.getElementById("timerText").innerText = "STAY TUNED";
-    document.getElementById("timerFill").style.width = "0%";
-    lockButtons(); // Stop them from clicking old buttons
-    
-    // Optional: Reset button colors to default
-    const btns = [document.getElementById("yesBtn"), document.getElementById("noBtn")];
-    btns.forEach(b => {
-        b.classList.remove("correct", "wrong", "locked-in");
-        b.style.opacity = "0.5";
+        // 2. NEW QUESTION DETECTED (result is null)
+        if (data.result === null) {
+            // Hard Reset Local Variables
+            hasVoted = false;
+            selectedChoice = null;
+            
+            // UI Reset
+            document.getElementById("question").innerText = data.question;
+            resetButtonsUI();
+
+            if (data.status === "open") {
+                startTimer(data.endTime);
+            } else {
+                disableButtons();
+                document.getElementById("timerText").innerText = "LOCKED";
+            }
+        } 
+        
+        // 3. RESULT DETECTED (result is YES/NO)
+        else {
+            processResult(data.result);
+        }
     });
-}
 
     function startTimer(endTime) {
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            const now = Date.now();
-            const diff = endTime - now;
+            const diff = endTime - Date.now();
             const seconds = Math.max(0, Math.floor(diff / 1000));
             
-            document.getElementById("timerText").innerText = seconds + "s";
+            document.getElementById("timerText").innerText = seconds + "s REMAINING";
             document.getElementById("timerFill").style.width = (seconds * 10) + "%";
 
             if (seconds <= 0) {
                 clearInterval(timerInterval);
-                lockButtons();
+                disableButtons();
+                document.getElementById("timerText").innerText = "TIME'S UP";
             }
         }, 1000);
     }
 
     function answer(choice) {
         if (hasVoted) return;
-        if (navigator.vibrate) navigator.vibrate(50);
-        
         hasVoted = true;
         selectedChoice = choice;
+        
+        if (navigator.vibrate) navigator.vibrate(50);
         
         const btn = choice === 'YES' ? document.getElementById("yesBtn") : document.getElementById("noBtn");
         const other = choice === 'YES' ? document.getElementById("noBtn") : document.getElementById("yesBtn");
         
         btn.classList.add("locked-in");
         other.style.opacity = "0.2";
-        lockButtons();
+        disableButtons();
     }
 
-    function handleResult(correct) {
+    function processResult(correct) {
+        clearInterval(timerInterval);
         const yesBtn = document.getElementById("yesBtn");
         const noBtn = document.getElementById("noBtn");
-        clearInterval(timerInterval);
 
         if (correct === "YES") {
             yesBtn.classList.add("correct");
@@ -352,30 +262,22 @@ function showWaitingScreen() {
             yesBtn.classList.add("wrong");
         }
 
-        // Win logic
+        // Scoring Logic
         if (selectedChoice === correct) {
-            confetti({
-                particleCount: 120,
-                spread: 70,
-                origin: { y: 0.7 },
-                colors: ['#38bdf8', '#22c55e', '#ffffff']
-            });
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 } });
             userScore += 100;
             localStorage.setItem("cricketScore", userScore);
             document.getElementById("scoreDisplay").innerText = userScore + " PTS";
-            selectedChoice = "PROCESSED"; // Prevent multiple scoring
+            selectedChoice = "PROCESSED"; // Prevent double scoring
         }
-        lockButtons();
     }
 
-    function lockButtons() {
+    function disableButtons() {
         document.getElementById("yesBtn").disabled = true;
         document.getElementById("noBtn").disabled = true;
     }
 
     function resetButtonsUI() {
-        hasVoted = false;
-        selectedChoice = null;
         const btns = [document.getElementById("yesBtn"), document.getElementById("noBtn")];
         btns.forEach(b => {
             b.disabled = false;

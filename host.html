@@ -1,30 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PredictLive HOST</title>
+    <title>PredictLive ADMIN</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body style="background:#111; color:white; font-family:sans-serif; padding:20px;">
     <h2>ADMIN PANEL</h2>
-    <p>Status: <span id="status">Connecting...</span></p>
     
-    <input type="text" id="q" placeholder="Question (e.g. Next Ball?)" style="width:100%; padding:10px;"><br><br>
-    <input type="text" id="score" placeholder="Match Score (e.g. 120/4)" style="width:100%; padding:10px;"><br><br>
-    <input type="text" id="options" placeholder="Options (comma separated: Dot,1,2,3,4,6,W)" style="width:100%; padding:10px;"><br><br>
-    
-    <button onclick="send()" style="padding:20px; width:100%; background:cyan; font-weight:bold;">PUSH QUESTION</button>
-    <hr>
-    <h3>SET RESULT</h3>
-    <input type="text" id="res" placeholder="Winning Option">
-    <button onclick="setWin()" style="padding:10px; background:lime;">SET WINNER</button>
-
     <script>
-        // PASTE YOUR SAME CONFIG HERE
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            databaseURL: "YOUR_DATABASE_URL",
             projectId: "YOUR_PROJECT",
             storageBucket: "YOUR_PROJECT.appspot.com",
             messagingSenderId: "YOUR_ID",
@@ -32,23 +20,25 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        document.getElementById('status').innerText = "Connected to Firebase!";
 
-        function send() {
-            const opts = document.getElementById('options').value.split(',');
+        function sendData() {
+            const q = document.getElementById('qIn').value;
+            const score = document.getElementById('sIn').value;
+            const opt = document.getElementById('oIn').value.split(',');
+
             db.ref("currentQuestion").set({
-                question: document.getElementById('q').value,
-                matchScore: document.getElementById('score').value,
-                options: opts,
+                question: q,
+                matchScore: score,
+                options: opt,
                 status: "open",
-                result: null,
                 timestamp: Date.now()
-            }).then(() => alert("Sent!"));
-        }
-
-        function setWin() {
-            db.ref("currentQuestion/result").set(document.getElementById('res').value);
+            }).then(() => alert("PUSHED TO PLAYER!"));
         }
     </script>
+
+    <input type="text" id="qIn" placeholder="Question" style="width:100%; padding:10px; margin-bottom:10px;">
+    <input type="text" id="sIn" placeholder="Score" style="width:100%; padding:10px; margin-bottom:10px;">
+    <input type="text" id="oIn" placeholder="Options (comma separated: Yes,No)" style="width:100%; padding:10px; margin-bottom:10px;">
+    <button onclick="sendData()" style="width:100%; padding:15px; background:cyan; font-weight:bold;">PUSH TO PLAYER</button>
 </body>
 </html>

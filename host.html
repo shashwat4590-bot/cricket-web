@@ -1,201 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive | Host Command Center</title>
-    
+    <title>PredictLive HOST</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <style>
-        :root {
-            --bg: #020617;
-            --panel: #1e293b;
-            --accent: #38bdf8;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-        body { background: var(--bg); color: white; padding: 20px; display: flex; justify-content: center; }
-
-        .admin-box { width: 100%; max-width: 600px; background: var(--panel); border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); }
-        
-        h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-
-        .section { margin-bottom: 25px; }
-        label { display: block; font-size: 0.75rem; font-weight: 800; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; }
-
-        /* Match Info Inputs */
-        .score-input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        input { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; width: 100%; }
-
-        /* Quick Action Grid */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        button {
-            padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
-            transition: 0.2s; font-size: 0.85rem; text-transform: uppercase;
-        }
-
-        .btn-blue { background: var(--accent); color: #082f49; }
-        .btn-green { background: var(--success); color: #052e16; }
-        .btn-orange { background: var(--warning); color: #451a03; }
-        .btn-red { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 2px solid #334155; color: white; }
-
-        button:active { transform: scale(0.96); }
-
-        /* Result Section */
-        #activeOptions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .opt-chip { background: #334155; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
-        .opt-chip:hover { background: var(--success); }
-
-        #log { font-family: monospace; font-size: 0.7rem; background: #000; padding: 15px; border-radius: 10px; margin-top: 20px; height: 80px; overflow-y: auto; color: #22c55e; }
-    </style>
 </head>
-<body>
+<body style="background:#111; color:white; font-family:sans-serif; padding:20px;">
+    <h2>ADMIN PANEL</h2>
+    <p>Status: <span id="status">Connecting...</span></p>
+    
+    <input type="text" id="q" placeholder="Question (e.g. Next Ball?)" style="width:100%; padding:10px;"><br><br>
+    <input type="text" id="score" placeholder="Match Score (e.g. 120/4)" style="width:100%; padding:10px;"><br><br>
+    <input type="text" id="options" placeholder="Options (comma separated: Dot,1,2,3,4,6,W)" style="width:100%; padding:10px;"><br><br>
+    
+    <button onclick="send()" style="padding:20px; width:100%; background:cyan; font-weight:bold;">PUSH QUESTION</button>
+    <hr>
+    <h3>SET RESULT</h3>
+    <input type="text" id="res" placeholder="Winning Option">
+    <button onclick="setWin()" style="padding:10px; background:lime;">SET WINNER</button>
 
-<div class="admin-box">
-    <h2>HOST COMMAND CENTER</h2>
+    <script>
+        // PASTE YOUR SAME CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_ID",
+            appId: "YOUR_APP"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        document.getElementById('status').innerText = "Connected to Firebase!";
 
-    <div class="section">
-        <label>Live Match Feed</label>
-        <div class="score-input-group">
-            <input type="text" id="hostTeam" placeholder="Batting Team (e.g. CSK)">
-            <input type="text" id="hostScore" placeholder="Score (e.g. 145/3 18.2)">
-        </div>
-    </div>
-
-    <div class="section">
-        <label>Quick Launch Questions</label>
-        <div class="grid">
-            <button class="btn-blue" onclick="sendToss()">🪙 Toss Prediction</button>
-            <button class="btn-blue" onclick="send5OverRuns()">🏏 5-Over Runs</button>
-            <button class="btn-blue" onclick="send5OverWickets()">☝️ 5-Over Wickets</button>
-            <button class="btn-outline" onclick="clearScreen()">🧹 Clear Screen</button>
-        </div>
-    </div>
-
-    <div class="section">
-        <label>Live Controls</label>
-        <div class="grid">
-            <button class="btn-orange" onclick="lockBets()">🔒 Lock Betting</button>
-            <button class="btn-red" onclick="resetGame()">♻️ Hard Reset</button>
-        </div>
-    </div>
-
-    <div class="section" id="resultArea" style="display:none;">
-        <label>Declare Winner (Click Correct Option)</label>
-        <div id="activeOptions"></div>
-    </div>
-
-    <div id="log">System initialized. Waiting for match start...</div>
-</div>
-
-<script>
-    // --- FIREBASE CONFIG (SAME AS PLAYER APP) ---
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "cricket-web-predict.firebaseapp.com",
-        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
-        projectId: "cricket-web-predict",
-        storageBucket: "cricket-web-predict.appspot.com",
-        messagingSenderId: "SENDER_ID",
-        appId: "APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const qRef = db.ref("currentQuestion");
-
-    let currentActiveOptions = [];
-
-    // 1. TOSS PREDICTION (Pre-Match)
-    function sendToss() {
-        const team1 = document.getElementById("hostTeam").value || "TEAM A";
-        const team2 = "TEAM B"; // Change as needed
-        const opts = [team1, "DRAW", "TEAM B"];
-        
-        pushToFirebase("Who will win the Toss?", opts, 3600000); // 1 Hour
-    }
-
-    // 2. RUNS PREDICTION
-    function send5OverRuns() {
-        const opts = ["< 30", "30-45", "45-60", "> 60"];
-        pushToFirebase("Predicted runs in first 5 overs?", opts, 600000); // 10 Mins
-    }
-
-    // 3. WICKETS PREDICTION
-    function send5OverWickets() {
-        const opts = ["0", "1", "2", "3+"];
-        pushToFirebase("Wickets lost in first 5 overs?", opts, 600000);
-    }
-
-    // MASTER PUSH FUNCTION
-    function pushToFirebase(q, opts, duration) {
-        currentActiveOptions = opts;
-        const score = document.getElementById("hostScore").value || "TOSS PENDING";
-        const team = document.getElementById("hostTeam").value || "MATCH STARTING";
-
-        qRef.set({
-            question: q,
-            options: opts,
-            status: "open",
-            endTime: Date.now() + duration,
-            matchScore: score,
-            battingTeam: team,
-            result: null
-        }).then(() => {
-            log("Pushed: " + q);
-            showResultButtons(opts);
-        });
-    }
-
-    function showResultButtons(opts) {
-        const area = document.getElementById("resultArea");
-        const container = document.getElementById("activeOptions");
-        area.style.display = "block";
-        container.innerHTML = "";
-        
-        opts.forEach(opt => {
-            const chip = document.createElement("div");
-            chip.className = "opt-chip";
-            chip.innerText = opt;
-            chip.onclick = () => declareWinner(opt);
-            container.appendChild(chip);
-        });
-    }
-
-    function declareWinner(winner) {
-        qRef.update({ result: winner });
-        log("Declared Result: " + winner);
-        document.getElementById("resultArea").style.display = "none";
-    }
-
-    function lockBets() {
-        qRef.update({ status: "locked" });
-        log("Betting Locked.");
-    }
-
-    function clearScreen() {
-        qRef.remove();
-        log("Screen Cleared.");
-    }
-
-    function resetGame() {
-        if(confirm("Reset all player data and screens?")) {
-            qRef.remove();
-            log("HARD RESET COMPLETE.");
+        function send() {
+            const opts = document.getElementById('options').value.split(',');
+            db.ref("currentQuestion").set({
+                question: document.getElementById('q').value,
+                matchScore: document.getElementById('score').value,
+                options: opts,
+                status: "open",
+                result: null,
+                timestamp: Date.now()
+            }).then(() => alert("Sent!"));
         }
-    }
 
-    function log(msg) {
-        const logDiv = document.getElementById("log");
-        logDiv.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}<br>` + logDiv.innerHTML;
-    }
-</script>
+        function setWin() {
+            db.ref("currentQuestion/result").set(document.getElementById('res').value);
+        }
+    </script>
 </body>
 </html>

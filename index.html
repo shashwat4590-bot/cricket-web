@@ -10,105 +10,66 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
         
         :root {
-            --bg: #020617;
-            --card: #0f172a;
-            --accent: #38bdf8;
-            --success: #22c55e;
-            --error: #ef4444;
-            --gold: #fbbf24;
+            --bg: #020617; --card: #0f172a; --accent: #38bdf8;
+            --success: #22c55e; --error: #ef4444; --gold: #fbbf24;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
-        
-        body { 
-            background-color: var(--bg); 
-            color: white; 
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 70%);
-        }
+        body { background-color: var(--bg); color: white; min-height: 100vh; }
 
-        /* Responsive Layout */
-        .app-shell {
-            width: 100%;
-            max-width: 600px; /* Better for PC */
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        .app-shell { width: 100%; max-width: 650px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
 
         /* Navigation Bar */
         .bottom-nav {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 600px; background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px); display: flex; justify-content: space-around; 
-            padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000;
+            width: 100%; max-width: 650px; background: #0f172a;
+            display: flex; justify-content: space-around; padding: 20px;
+            border-top: 2px solid #1e293b; z-index: 9999;
         }
-        .nav-item { color: #64748b; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-align: center; transition: 0.3s; }
-        .nav-item.active { color: var(--accent); transform: translateY(-5px); }
+        .nav-item { color: #64748b; font-size: 1rem; font-weight: 900; cursor: pointer; text-align: center; }
+        .nav-item.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-        .page { display: none; padding: 30px 20px 120px; animation: slideUp 0.4s ease-out; }
+        .page { display: none; padding: 40px 20px 140px; animation: fadeIn 0.3s ease; }
         .page.active { display: flex; flex-direction: column; align-items: center; }
 
-        /* --- HOME PAGE --- */
+        /* HOME PAGE */
         .hero-banner {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            width: 100%; border-radius: 40px; padding: 40px;
-            border: 1px solid rgba(56, 189, 248, 0.2); margin-top: 20px;
-            text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, #1e293b, #020617);
+            width: 100%; border-radius: 40px; padding: 50px 30px;
+            border: 2px solid #1e293b; text-align: center; margin-top: 20px;
         }
-        .match-title { font-size: 2rem; font-weight: 900; margin-bottom: 10px; }
-        .team-row { display: flex; justify-content: space-between; align-items: center; margin: 40px 0; }
-        .team-logo { width: 100px; height: 100px; object-fit: contain; }
-        .vs-text { font-size: 1.5rem; font-weight: 900; color: var(--accent); opacity: 0.5; }
-
-        /* --- WALLET --- */
-        .wallet-card { 
-            background: var(--card); width: 100%; border-radius: 35px; padding: 40px; 
-            border: 1px solid rgba(251, 191, 36, 0.3); text-align: center;
-        }
-        .token-val { font-size: 4rem; font-weight: 900; color: var(--gold); }
-        input { 
-            background: #020617; border: 2px solid #334155; padding: 20px; 
-            border-radius: 20px; color: white; width: 100%; font-size: 1.2rem; margin: 20px 0;
-            text-align: center;
-        }
-
-        /* --- ARENA --- */
-        .scoreboard { 
-            background: rgba(255, 255, 255, 0.03); border-radius: 30px; padding: 30px; 
-            width: 100%; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 25px; 
-            text-align: center;
-        }
-        .live-score-text { font-size: 3rem; font-weight: 900; letter-spacing: -2px; }
+        .match-card { display: flex; justify-content: space-around; align-items: center; margin: 40px 0; }
         
-        .predict-card { 
-            background: var(--card); border-radius: 40px; padding: 40px 30px; 
-            width: 100%; border: 1px solid #1e293b; text-align: center;
-        }
-        #question { font-size: 1.6rem; font-weight: 700; min-height: 80px; margin-bottom: 30px; }
+        /* Fixed Logo Styling */
+        .logo-frame { background: white; padding: 15px; border-radius: 25px; width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(56,189,248,0.3); }
+        .logo-frame img { width: 100%; height: auto; display: block; }
+        .vs-circle { background: #334155; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--accent); }
 
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-        .opt-btn { 
-            background: #1e293b; border: 1px solid #334155; color: white; 
-            padding: 25px 15px; border-radius: 25px; font-size: 1.1rem; font-weight: 700; cursor: pointer;
-        }
-        .opt-btn.selected { border: 3px solid var(--accent); background: rgba(56, 189, 248, 0.1); }
-        .opt-btn.correct { background: var(--success) !important; color: #052e16 !important; }
-        .opt-btn.wrong { background: var(--error) !important; opacity: 0.5; }
+        /* ARENA */
+        .score-display { background: var(--card); border-radius: 30px; padding: 30px; width: 100%; border: 1px solid #1e293b; margin-bottom: 20px; text-align: center; }
+        .score-val { font-size: 3.5rem; font-weight: 900; line-height: 1; margin-top: 10px; color: white; }
+        
+        .question-box { background: var(--card); border-radius: 35px; padding: 40px 25px; width: 100%; border: 2px solid #1e293b; text-align: center; }
+        #qText { font-size: 1.8rem; font-weight: 700; margin-bottom: 30px; color: #f8fafc; }
 
-        /* --- LOCK BET BUTTON --- */
-        #lockBetBtn {
-            display: none; width: 100%; background: var(--accent); color: #082f49;
-            padding: 20px; border-radius: 20px; border: none; font-size: 1.2rem;
-            font-weight: 900; margin-top: 25px; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
-        }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
+        .opt-btn { background: #1e293b; border: 2px solid #334155; color: white; padding: 25px 10px; border-radius: 20px; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
+        .opt-btn.active-sel { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); box-shadow: 0 0 15px rgba(56,189,248,0.3); }
+        .opt-btn.win { background: var(--success) !important; color: #052e16 !important; border: none; }
+        .opt-btn.lose { background: var(--error) !important; opacity: 0.5; border: none; }
 
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* WALLET */
+        .wallet-box { background: var(--card); border-radius: 30px; padding: 40px; width: 100%; border: 2px solid var(--gold); text-align: center; }
+        input { width: 100%; padding: 20px; border-radius: 15px; border: 2px solid #334155; background: #020617; color: white; font-size: 1.5rem; text-align: center; margin: 20px 0; }
+
+        /* BUTTONS */
+        .main-btn { background: var(--accent); color: #082f49; border: none; padding: 22px; border-radius: 20px; font-weight: 900; font-size: 1.2rem; width: 100%; cursor: pointer; transition: 0.2s; }
+        .main-btn:active { transform: scale(0.95); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -116,64 +77,64 @@
 <div class="app-shell">
     
     <div id="home" class="page active">
-        <h1 style="color: var(--accent); font-size: 2.5rem; font-weight: 900;">PREDICT<span style="color:white">LIVE</span></h1>
+        <h1 style="font-size: 3rem; font-weight: 900; color: var(--accent);">PREDICT<span style="color:white">LIVE</span></h1>
         <div class="hero-banner">
-            <p style="color:var(--gold); font-weight:800; letter-spacing:3px;">TONIGHT'S CLASH</p>
-            <div class="team-row">
-                <div>
-                    <img src="https://www.iplt20.com/assets/images/csk-v2.png" class="team-logo">
-                    <p style="font-size:1.5rem; font-weight:900; margin-top:10px;">CSK</p>
+            <h3 style="color: var(--gold); letter-spacing: 4px; font-size: 1rem;">LIVE FINALS</h3>
+            <div class="match-card">
+                <div class="logo-frame">
+                    <img src="https://hatchpro.club/images/csk.png" alt="CSK">
                 </div>
-                <div class="vs-text">VS</div>
-                <div>
-                    <img src="https://www.iplt20.com/assets/images/mi-v2.png" class="team-logo">
-                    <p style="font-size:1.5rem; font-weight:900; margin-top:10px;">MI</p>
+                <div class="vs-circle">VS</div>
+                <div class="logo-frame">
+                    <img src="https://hatchpro.club/images/mi.png" alt="MI">
                 </div>
             </div>
-            <button onclick="nav('arena')" style="background:white; color:black; border:none; padding:20px; border-radius:20px; font-weight:900; width:100%; cursor:pointer; font-size:1.1rem;">JOIN THE ACTION</button>
+            <button class="main-btn" onclick="switchPage('arena')">START PREDICTING</button>
         </div>
-        <p style="margin-top:40px; color:#64748b; text-align:center; line-height:1.6;">Predict every ball, every wicket, and every boundary live to win massive rewards!</p>
-    </div>
-
-    <div id="wallet" class="page">
-        <h2 style="font-size: 2rem; margin-bottom: 30px;">MY WALLET</h2>
-        <div class="wallet-card">
-            <p style="font-weight:700; color:#94a3b8;">TOTAL TOKENS</p>
-            <div class="token-val" id="balanceText">0</div>
-            <div style="margin-top:30px;">
-                <label style="color:var(--gold); font-weight:800; font-size:0.9rem;">RECHARGE AMOUNT (₹)</label>
-                <input type="number" id="cashInput" placeholder="Minimum ₹50">
-                <button onclick="processBuy()" style="background:var(--gold); color:black; border:none; padding:20px; border-radius:20px; font-weight:900; width:100%; font-size:1.1rem; cursor:pointer;">ADD TOKENS</button>
-            </div>
+        <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 1.1rem; padding: 0 20px;">
+            <p>Predict every ball live and win 3x tokens instantly in your wallet!</p>
         </div>
     </div>
 
     <div id="arena" class="page">
-        <div class="scoreboard">
-            <p style="color:var(--accent); font-weight:800; font-size:0.8rem; letter-spacing:2px; margin-bottom:10px;">MATCH STATUS</p>
-            <div style="display:flex; justify-content:center; align-items:center; gap:30px;">
-                <span id="batTeam" style="font-size:1.5rem; font-weight:900;">TOSS</span>
-                <span id="liveScore" class="live-score-text">0/0</span>
-            </div>
+        <div class="score-display">
+            <p style="color: var(--accent); font-weight: 800; font-size: 0.9rem; letter-spacing: 2px;">MATCH SCORE</p>
+            <div id="batTeam" style="font-weight: 800; margin-top: 10px; font-size: 1.2rem;">MATCH STARTING</div>
+            <div id="liveScore" class="score-val">0/0</div>
         </div>
-        <div class="predict-card">
-            <div id="question">Connecting to Match...</div>
-            <div id="optionsContainer" class="options-grid"></div>
-            <button id="lockBetBtn" onclick="confirmBet()">LOCK MY BET (10 Tokens)</button>
-            <p id="lockStatus" style="display:none; margin-top:20px; font-weight:700; color:var(--accent);"></p>
+
+        <div class="question-box">
+            <div id="qText">Waiting for next ball...</div>
+            <div id="optGrid" class="opt-grid"></div>
+            
+            <button id="lockBtn" class="main-btn" style="display:none; margin-top: 25px;" onclick="handleLock()">LOCK BET (10 Tokens)</button>
+            <p id="lockStatus" style="margin-top: 20px; font-weight: 900; color: var(--accent); display: none; font-size: 1.2rem;"></p>
+        </div>
+    </div>
+
+    <div id="wallet" class="page">
+        <div class="wallet-box">
+            <p style="font-weight: 800; color: #94a3b8;">YOUR TOKENS</p>
+            <div id="tokenBal" style="font-size: 4rem; font-weight: 900; color: var(--gold);">0</div>
+            
+            <div style="margin-top: 40px;">
+                <p style="font-weight: 800; color: var(--gold); font-size: 0.9rem;">RECHARGE (₹1 = 3 Tokens)</p>
+                <input type="number" id="amtIn" placeholder="Enter Amount">
+                <button class="main-btn" style="background: var(--gold);" onclick="addTokens()">BUY TOKENS</button>
+            </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" id="nav-home" onclick="nav('home')">HOME</div>
-        <div class="nav-item" id="nav-arena" onclick="nav('arena')">ARENA</div>
-        <div class="nav-item" id="nav-wallet" onclick="nav('wallet')">WALLET</div>
+        <div class="nav-item active" id="nav-home" onclick="switchPage('home')">HOME</div>
+        <div class="nav-item" id="nav-arena" onclick="switchPage('arena')">ARENA</div>
+        <div class="nav-item" id="nav-wallet" onclick="switchPage('wallet')">WALLET</div>
     </div>
 
 </div>
 
 <script>
-    // --- FIREBASE CONFIG (MUST MATCH YOUR HOST) ---
+    // --- 1. FIREBASE SETUP (IMPORTANT: COPY PASTE YOUR KEYS EXACTLY) ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_DOMAIN",
@@ -184,129 +145,135 @@
         appId: "YOUR_APP"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.database();
     const qRef = db.ref("currentQuestion");
 
-    let tokens = parseInt(localStorage.getItem("user_tokens")) || 0;
-    document.getElementById('balanceText').innerText = tokens;
+    // --- 2. GLOBAL STATE ---
+    let tokens = parseInt(localStorage.getItem("tokens")) || 0;
+    let selectedOption = null;
+    let currentQuestionID = "";
 
-    let selectedTemp = null; // Stored before locking
-    let lastQuestionKey = ""; // Track if question changed
+    function updateUI() {
+        document.getElementById('tokenBal').innerText = tokens;
+        localStorage.setItem("tokens", tokens);
+    }
+    updateUI();
 
-    function nav(id) {
+    // --- 3. PAGE SWITCHER ---
+    function switchPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('nav-' + id).classList.add('active');
     }
 
-    function processBuy() {
-        const val = parseInt(document.getElementById('cashInput').value);
-        if(val < 50) return alert("Min ₹50 required");
+    // --- 4. WALLET LOGIC ---
+    function addTokens() {
+        const val = parseInt(document.getElementById('amtIn').value);
+        if(!val || val < 50) return alert("Minimum recharge is ₹50");
         tokens += (val * 3);
-        saveTokens();
-        alert("Tokens Added!");
+        updateUI();
+        alert("Added " + (val*3) + " Tokens!");
     }
 
-    function saveTokens() {
-        localStorage.setItem("user_tokens", tokens);
-        document.getElementById('balanceText').innerText = tokens;
-    }
-
-    // --- LIVE ARENA ---
-    qRef.on("value", (snap) => {
-        const data = snap.val();
-        if (!data) return;
-
-        // CHECK IF IT'S A NEW QUESTION
-        const currentKey = data.question + data.status; 
-        if(currentKey !== lastQuestionKey) {
-            resetPlayerState(); // Reset UI for the new question
-            lastQuestionKey = currentKey;
+    // --- 5. LIVE SYNC (THE FIX) ---
+    qRef.on("value", (snapshot) => {
+        const data = snapshot.val();
+        if(!data) {
+            document.getElementById('qText').innerText = "Host is offline.";
+            return;
         }
 
-        document.getElementById("liveScore").innerText = data.matchScore || "0/0";
-        document.getElementById("batTeam").innerText = data.battingTeam || "LIVE";
-        document.getElementById("question").innerText = data.question;
+        // RESET LOGIC: If question text or status changes, unlock the UI
+        const newID = data.question + data.status;
+        if(newID !== currentQuestionID) {
+            currentQuestionID = newID;
+            resetArena();
+        }
 
-        if (!data.result) {
-            renderOptions(data.options);
+        // Update Text
+        document.getElementById('liveScore').innerText = data.matchScore || "0/0";
+        document.getElementById('batTeam').innerText = data.battingTeam || "LIVE";
+        document.getElementById('qText').innerText = data.question;
+
+        // Render Options
+        if(!data.result) {
+            const grid = document.getElementById('optGrid');
+            grid.innerHTML = "";
+            const opts = data.options || [];
+            opts.filter(o => o !== "DRAW").forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "opt-btn";
+                if(selectedOption === opt) btn.classList.add('active-sel');
+                btn.innerText = opt;
+                btn.onclick = () => selectOpt(opt);
+                grid.appendChild(btn);
+            });
         } else {
-            showResult(data.result, data.options);
+            showWinner(data.result, data.options);
         }
     });
 
-    function renderOptions(options) {
-        if (!options) return;
-        const container = document.getElementById("optionsContainer");
-        container.innerHTML = "";
+    function selectOpt(opt) {
+        if(localStorage.getItem("isLocked") === "true") return;
+        selectedOption = opt;
         
-        options.filter(o => o !== "DRAW").forEach(opt => {
-            const btn = document.createElement("button");
-            btn.className = "opt-btn";
-            if(selectedTemp === opt) btn.classList.add("selected");
-            btn.innerText = opt;
-            btn.onclick = () => selectOption(opt);
-            container.appendChild(btn);
-        });
+        // Visual select
+        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active-sel'));
+        event.target.classList.add('active-sel');
+        
+        // Show Lock Button
+        document.getElementById('lockBtn').style.display = "block";
     }
 
-    function selectOption(opt) {
-        if (localStorage.getItem("bet_locked") === "true") return;
-        selectedTemp = opt;
-        document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-        event.target.classList.add('selected');
-        document.getElementById("lockBetBtn").style.display = "block";
-    }
-
-    function confirmBet() {
-        if (tokens < 10) return alert("Low Tokens!");
+    function handleLock() {
+        if(tokens < 10) return alert("Not enough tokens!");
         
         tokens -= 10;
-        saveTokens();
-        localStorage.setItem("bet_locked", "true");
-        localStorage.setItem("my_selection", selectedTemp);
+        updateUI();
         
-        applyLockUI();
-    }
-
-    function applyLockUI() {
-        document.getElementById("lockBetBtn").style.display = "none";
+        localStorage.setItem("isLocked", "true");
+        localStorage.setItem("myPick", selectedOption);
+        
+        document.getElementById('lockBtn').style.display = "none";
+        document.getElementById('lockStatus').style.display = "block";
+        document.getElementById('lockStatus').innerText = "BET LOCKED: " + selectedOption;
         document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-        const status = document.getElementById("lockStatus");
-        status.style.display = "block";
-        status.innerText = "BET LOCKED ON: " + selectedTemp;
     }
 
-    function showResult(correct, options) {
-        const myBet = localStorage.getItem("my_selection");
-        const container = document.getElementById("optionsContainer");
-        container.innerHTML = "";
+    function showWinner(win, allOpts) {
+        const myPick = localStorage.getItem("myPick");
+        const grid = document.getElementById('optGrid');
+        grid.innerHTML = "";
 
-        options.forEach(opt => {
-            const btn = document.createElement("button");
+        allOpts.forEach(o => {
+            const btn = document.createElement('button');
             btn.className = "opt-btn";
-            btn.innerText = opt;
-            if(opt === correct) btn.classList.add("correct");
-            else if(opt === myBet) btn.classList.add("wrong");
-            container.appendChild(btn);
+            btn.innerText = o;
+            if(o === win) btn.classList.add('win');
+            else if(o === myPick) btn.classList.add('lose');
+            grid.appendChild(btn);
         });
 
-        if (myBet === correct && localStorage.getItem("bet_processed") !== lastQuestionKey) {
-            confetti({ particleCount: 150 });
-            tokens += 30;
-            saveTokens();
-            localStorage.setItem("bet_processed", lastQuestionKey);
+        // Winning logic
+        if(myPick === win && localStorage.getItem("processed") !== currentQuestionID) {
+            confetti({ particleCount: 150, spread: 70 });
+            tokens += 30; // 3x payout
+            updateUI();
+            localStorage.setItem("processed", currentQuestionID);
         }
+        
+        document.getElementById('lockBtn').style.display = "none";
+        document.getElementById('lockStatus').style.display = "none";
     }
 
-    function resetPlayerState() {
-        selectedTemp = null;
-        localStorage.setItem("bet_locked", "false");
-        localStorage.setItem("my_selection", "");
-        document.getElementById("lockStatus").style.display = "none";
-        document.getElementById("lockBetBtn").style.display = "none";
+    function resetArena() {
+        selectedOption = null;
+        localStorage.setItem("isLocked", "false");
+        localStorage.setItem("myPick", "");
+        document.getElementById('lockStatus').style.display = "none";
+        document.getElementById('lockBtn').style.display = "none";
     }
 </script>
 </body>

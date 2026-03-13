@@ -3,161 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cricket Live Predictor</title>
-    
+    <title>Cricket Predictor</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #38bdf8;
-            --success: #22c55e;
-            --error: #ef4444;
-            --text: #f8fafc;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 450px;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .logo { font-weight: 800; font-size: 1.1rem; color: var(--primary); letter-spacing: 1px; }
-
-        #scoreDisplay {
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid var(--primary);
-            padding: 6px 14px;
-            border-radius: 99px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--primary);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-        }
-
-        /* Match Banner */
-        .match-banner {
-            margin: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .team img { width: 50px; height: 50px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .vs { font-weight: 900; opacity: 0.3; font-style: italic; }
-
-        /* Prediction Card */
-        .prediction-card {
-            margin: 0 20px;
-            padding: 25px;
-            background: var(--card);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        #question {
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-
-        /* Timer Section */
-        .timer-box { margin-bottom: 25px; }
-        .timer-info { display: flex; justify-content: space-between; font-size: 0.7rem; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
-        .bar-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s linear; }
-
-        /* Buttons */
-        .btn-group { display: flex; gap: 12px; }
-        .btn {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-
-        .btn-yes { background: var(--success); color: #052e16; }
-        .btn-no { background: var(--error); color: white; }
-        .btn:disabled { cursor: not-allowed; }
-
-        /* Status Animations */
-        .locked-in { outline: 3px solid white; outline-offset: 2px; }
-        .correct { background: var(--success) !important; color: white !important; opacity: 1 !important; transform: scale(1.05); }
-        .wrong { background: #334155 !important; opacity: 0.3 !important; }
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #38bdf8; --success: #22c55e; --error: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: white; display: flex; justify-content: center; padding-top: 50px; }
+        .container { width: 90%; max-width: 400px; background: var(--card); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #334155; }
+        #scoreDisplay { color: var(--primary); font-weight: bold; margin-bottom: 20px; display: block; }
+        #question { font-size: 1.4rem; margin-bottom: 20px; min-height: 50px; font-weight: 600; }
+        .timer-bar { height: 8px; background: #0f172a; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        #timerFill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .yes { background: var(--success); color: #064e3b; }
+        .no { background: var(--error); color: white; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .correct { background: var(--success) !important; color: white !important; transform: scale(1.05); }
+        .wrong { background: #334155 !important; opacity: 0.2 !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <div class="logo">LIVEPREDICT</div>
-        <div id="scoreDisplay">0 PTS</div>
-    </header>
-
-    <div class="match-banner">
-        <div class="team"><img src="https://upload.wikimedia.org/wikipedia/en/2/2e/Chennai_Super_Kings_Logo.svg"></div>
-        <div class="vs">VS</div>
-        <div class="team"><img src="https://upload.wikimedia.org/wikipedia/en/c/cd/Mumbai_Indians_Logo.svg"></div>
+    <span id="scoreDisplay">Points: 0</span>
+    <div id="question">Waiting for host...</div>
+    <div class="timer-bar"><div id="timerFill"></div></div>
+    <div class="btn-group">
+        <button id="yesBtn" class="yes" onclick="answer('YES')">YES</button>
+        <button id="noBtn" class="no" onclick="answer('NO')">NO</button>
     </div>
-
-    <div class="prediction-card">
-        <div id="question">Connecting to Match...</div>
-        
-        <div class="timer-box">
-            <div class="timer-info">
-                <span>VOTING STATUS</span>
-                <span id="timerText">--</span>
-            </div>
-            <div class="bar-bg"><div class="bar-fill" id="timerFill"></div></div>
-        </div>
-
-        <div class="btn-group">
-            <button id="yesBtn" class="btn btn-yes" onclick="answer('YES')">Yes</button>
-            <button id="noBtn" class="btn btn-no" onclick="answer('NO')">No</button>
-        </div>
-    </div>
-
-    <footer style="margin-top:auto; padding:30px; text-align:center; font-size:0.7rem; color:#475569;">
-        SYNCED WITH LIVE BROADCAST
-    </footer>
 </div>
 
 <script>
-    // --- FIREBASE CONFIGURATION ---
+    // 1. YOUR FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "PASTE_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
@@ -170,122 +52,92 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const questionRef = db.ref("currentQuestion");
+    const qRef = db.ref("currentQuestion");
 
-    // --- GAME STATE ---
-    let userScore = parseInt(localStorage.getItem("cricketScore")) || 0;
-    let hasVoted = false;
-    let selectedChoice = null;
-    let timerInterval;
+    let score = parseInt(localStorage.getItem("c_score")) || 0;
+    let myChoice = null;
+    let timer;
 
-    document.getElementById("scoreDisplay").innerText = userScore + " PTS";
+    document.getElementById("scoreDisplay").innerText = "Points: " + score;
 
-    // --- THE MASTER LISTENER (No Refresh Needed) ---
-    questionRef.on("value", (snapshot) => {
-        const data = snapshot.val();
-        
-        // 1. If Board is Cleared by Host
-        if (!data) {
-            document.getElementById("question").innerText = "Waiting for next ball...";
-            document.getElementById("timerText").innerText = "STAY TUNED";
-            document.getElementById("timerFill").style.width = "0%";
-            disableButtons();
+    // 2. THE LISTENER
+    qRef.on("value", (snap) => {
+        const val = snap.val();
+        if (!val) {
+            document.getElementById("question").innerText = "Match Paused";
             return;
         }
 
-        // 2. NEW QUESTION DETECTED (result is null)
-        if (data.result === null) {
-            // Hard Reset Local Variables
-            hasVoted = false;
-            selectedChoice = null;
-            
-            // UI Reset
-            document.getElementById("question").innerText = data.question;
-            resetButtonsUI();
+        // SHOW QUESTION ALWAYS
+        document.getElementById("question").innerText = val.question;
 
-            if (data.status === "open") {
-                startTimer(data.endTime);
+        // If a new question starts (no result yet)
+        if (!val.result) {
+            myChoice = null;
+            resetUI();
+            
+            if (val.status === "open") {
+                startTimer(val.endTime);
             } else {
-                disableButtons();
-                document.getElementById("timerText").innerText = "LOCKED";
+                disableAll();
             }
         } 
-        
-        // 3. RESULT DETECTED (result is YES/NO)
+        // If result is pushed
         else {
-            processResult(data.result);
+            showResult(val.result);
         }
     });
 
     function startTimer(endTime) {
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            const diff = endTime - Date.now();
-            const seconds = Math.max(0, Math.floor(diff / 1000));
-            
-            document.getElementById("timerText").innerText = seconds + "s REMAINING";
-            document.getElementById("timerFill").style.width = (seconds * 10) + "%";
-
-            if (seconds <= 0) {
-                clearInterval(timerInterval);
-                disableButtons();
-                document.getElementById("timerText").innerText = "TIME'S UP";
+        clearInterval(timer);
+        timer = setInterval(() => {
+            const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+            document.getElementById("timerFill").style.width = (remaining * 10) + "%";
+            if (remaining <= 0) {
+                clearInterval(timer);
+                disableAll();
             }
         }, 1000);
     }
 
     function answer(choice) {
-        if (hasVoted) return;
-        hasVoted = true;
-        selectedChoice = choice;
-        
-        if (navigator.vibrate) navigator.vibrate(50);
-        
-        const btn = choice === 'YES' ? document.getElementById("yesBtn") : document.getElementById("noBtn");
-        const other = choice === 'YES' ? document.getElementById("noBtn") : document.getElementById("yesBtn");
-        
-        btn.classList.add("locked-in");
-        other.style.opacity = "0.2";
-        disableButtons();
+        if (myChoice) return;
+        myChoice = choice;
+        disableAll();
+        document.getElementById(choice === 'YES' ? 'yesBtn' : 'noBtn').style.border = "3px solid white";
     }
 
-    function processResult(correct) {
-        clearInterval(timerInterval);
-        const yesBtn = document.getElementById("yesBtn");
-        const noBtn = document.getElementById("noBtn");
+    function showResult(correct) {
+        clearInterval(timer);
+        disableAll();
+        const y = document.getElementById("yesBtn");
+        const n = document.getElementById("noBtn");
 
-        if (correct === "YES") {
-            yesBtn.classList.add("correct");
-            noBtn.classList.add("wrong");
-        } else {
-            noBtn.classList.add("correct");
-            yesBtn.classList.add("wrong");
-        }
+        if (correct === "YES") { y.classList.add("correct"); n.classList.add("wrong"); }
+        else { n.classList.add("correct"); y.classList.add("wrong"); }
 
-        // Scoring Logic
-        if (selectedChoice === correct) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.7 } });
-            userScore += 100;
-            localStorage.setItem("cricketScore", userScore);
-            document.getElementById("scoreDisplay").innerText = userScore + " PTS";
-            selectedChoice = "PROCESSED"; // Prevent double scoring
+        if (myChoice === correct) {
+            confetti();
+            score += 100;
+            localStorage.setItem("c_score", score);
+            document.getElementById("scoreDisplay").innerText = "Points: " + score;
+            myChoice = "done"; // stop double points
         }
     }
 
-    function disableButtons() {
+    function disableAll() {
         document.getElementById("yesBtn").disabled = true;
         document.getElementById("noBtn").disabled = true;
     }
 
-    function resetButtonsUI() {
-        const btns = [document.getElementById("yesBtn"), document.getElementById("noBtn")];
-        btns.forEach(b => {
-            b.disabled = false;
-            b.classList.remove("correct", "wrong", "locked-in");
-            b.style.opacity = "1";
-        });
+    function resetUI() {
+        const y = document.getElementById("yesBtn");
+        const n = document.getElementById("noBtn");
+        y.disabled = false; n.disabled = false;
+        y.classList.remove("correct", "wrong");
+        n.classList.remove("correct", "wrong");
+        y.style.border = "none"; n.style.border = "none";
     }
 </script>
-
 </body>
 </html>

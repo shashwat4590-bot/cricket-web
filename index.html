@@ -219,28 +219,29 @@
         box.appendChild(b);
     });
 
-    // 4. THE PAYOUT ENGINE (FIXED)
+    // 4. THE PAYOUT ENGINE (STRICT SYNC)
     const userPick = localStorage.getItem('myPick');
     const alreadyPaid = localStorage.getItem('paid');
 
     if(data.result && userPick === data.result && alreadyPaid === 'false') {
-        // Force get latest tokens from storage to prevent math errors
-        let currentTokens = parseInt(localStorage.getItem('tks')) || 0;
+        // Step A: Get the absolute latest value from storage
+        let savedTokens = parseInt(localStorage.getItem('tks')) || 0;
         
-        // Add 20 tokens (10 stake back + 10 profit)
-        currentTokens += 20; 
+        // Step B: Do the math
+        let newTotal = savedTokens + 20; 
         
-        // Save and Update global variable
-        tokens = currentTokens;
-        localStorage.setItem('tks', currentTokens);
-        localStorage.setItem('paid', 'true'); // Prevent double payment
+        // Step C: Save it back immediately
+        localStorage.setItem('tks', newTotal);
+        localStorage.setItem('paid', 'true'); 
         
-        // Refresh UI
+        // Step D: Update the global variable so other functions know
+        tokens = newTotal;
+        
+        // Step E: Force the UI to show the new number
         updateBalanceDisplay();
         
-        alert("🎯 Correct! 20 Tokens added to your wallet.");
+        alert("🎯 WINNER! +20 Tokens added.");
     }
-});
     
     function confirmBet() {
     if(tokens < 10) return alert("Not enough tokens!");
@@ -283,10 +284,19 @@
         document.getElementById('lock-msg').innerText = "Prediction Locked: " + window.pick;
     }
 
-    function updateBalanceDisplay() {
-        document.getElementById('pill-balance').innerText = tokens;
-        document.getElementById('wallet-balance').innerText = tokens;
-        localStorage.setItem('tks', tokens);
+  function updateBalanceDisplay() {
+        // Always pull from localStorage to be 100% sure
+        const currentAmount = localStorage.getItem('tks') || "0";
+        
+        // Update the Top Corner Pill
+        const pill = document.getElementById('pill-balance');
+        if(pill) pill.innerText = currentAmount;
+        
+        // Update the Wallet Page Number
+        const wall = document.getElementById('wallet-balance');
+        if(wall) wall.innerText = currentAmount;
+        
+        console.log("UI Updated to: " + currentAmount);
     }
 
     function nav(id) {

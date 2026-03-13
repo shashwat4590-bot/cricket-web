@@ -164,41 +164,74 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Data Listener
+    // Update this part in your index.html script
     db.ref("currentQuestion").on("value", (snap) => {
         const data = snap.val();
         if(!data) return;
 
-        // Reset if new question
+        const qText = document.getElementById('q-text');
+        const box = document.getElementById('options-box');
+
+        // Reset Logic if Question changes
         const qID = data.question + data.timestamp;
         if(window.lastQ !== qID) {
             window.lastQ = qID;
             localStorage.setItem('isLocked', 'false');
+            localStorage.setItem('myPick', '');
+            localStorage.setItem('paid', 'false'); // Important for payout
             document.getElementById('lock-msg').style.display = 'none';
         }
 
-        document.getElementById('q-text').innerText = data.question;
-        document.getElementById('live-score').innerText = data.matchScore || "0/0";
-        document.getElementById('batting-team').innerText = data.battingTeam || "Match Status";
+        // Handle Waiting State
+        if(data.active === false) {
+            qText.innerText = "Waiting for next scenario...";
+            box.innerHTML = "";
+            document.getElementById('lock-btn').style.display = "none";
+            return;
+        }
 
-        const box = document.getElementById('options-box');
+        qText.innerText = data.question;
+        document.getElementById('live-score').innerText = data.matchScore || "0/0";
+
+        // Render Options
         box.innerHTML = "";
-        if(data.options) {
-            data.options.forEach(o => {
-                const b = document.createElement('button');
-                b.className = "opt-btn";
-                b.innerText = o;
-                b.onclick = () => {
-                    if(localStorage.getItem('isLocked') === 'true') return;
-                    document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
-                    b.classList.add('selected');
-                    window.pick = o;
-                    document.getElementById('lock-btn').style.display = "block";
-                };
-                box.appendChild(b);
-            });
+        data.options.forEach(o => {
+            const b = document.createElement('button');
+            b.className = "opt-btn";
+            b.innerText = o;
+            
+            // Highlight result if winner declared
+            if(data.result === o) b.style.background = "#22c55e"; 
+            
+            b.onclick = () => {
+                if(localStorage.getItem('isLocked') === 'true') return;
+                document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
+                b.classList.add('selected');
+                window.pick = o;
+                document.getElementById('lock-btn').style.display = "block";
+            };
+            box.appendChild(b);
+        });
+
+        // PAYOUT LOGIC: If winner is declared and matches user's pick
+        if(data.result && localStorage.getItem('myPick') === data.result && localStorage.getItem('paid') === 'false') {
+            tokens += 20; // Original 10 + 10 Profit
+            localStorage.setItem('paid', 'true');
+            updateBalanceDisplay();
+            alert("Congratulations! You won 20 Tokens!");
         }
     });
+
+    function confirmBet() {
+        if(tokens < 10) return alert("Not enough tokens!");
+        tokens -= 10;
+        updateBalanceDisplay();
+        localStorage.setItem('isLocked', 'true');
+        localStorage.setItem('myPick', window.pick); // Save pick for payout check
+        document.getElementById('lock-btn').style.display = "none";
+        document.getElementById('lock-msg').style.display = "block";
+        document.getElementById('lock-msg').innerText = "Locked on: " + window.pick;
+    }
 
     // Economy Logic
     let tokens = parseInt(localStorage.getItem('tks')) || 0;

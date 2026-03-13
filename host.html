@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Host Command Center</title>
+    <title>PredictLive | Host Command Center</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -19,222 +19,183 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { background: var(--bg); color: white; padding: 20px; display: flex; justify-content: center; }
 
-        body {
-            background-color: var(--bg);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .panel {
-            width: 100%;
-            max-width: 450px;
-            background: var(--panel);
-            padding: 30px;
-            border-radius: 24px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-        }
-
-        /* Status Bar */
-        .status-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        #status-pill {
-            padding: 6px 12px;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(255,255,255,0.05);
-            color: #94a3b8;
-        }
-
-        .status-online { background: rgba(34, 197, 94, 0.1) !important; color: var(--success) !important; border: 1px solid var(--success); }
-        .status-locked { background: rgba(245, 158, 11, 0.1) !important; color: var(--warning) !important; border: 1px solid var(--warning); }
-
-        /* Question Display */
-        .queue-label { font-size: 0.75rem; color: var(--accent); font-weight: 700; margin-bottom: 8px; display: block; }
+        .admin-box { width: 100%; max-width: 600px; background: var(--panel); border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); }
         
-        .current-question-box {
-            background: #0f172a;
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 25px;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
+        h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
 
-        /* Controls */
-        .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .section { margin-bottom: 25px; }
+        label { display: block; font-size: 0.75rem; font-weight: 800; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase; }
+
+        /* Match Info Inputs */
+        .score-input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        input { background: #0f172a; border: 1px solid #334155; padding: 12px; border-radius: 10px; color: white; width: 100%; }
+
+        /* Quick Action Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
         button {
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
+            padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer;
+            transition: 0.2s; font-size: 0.85rem; text-transform: uppercase;
         }
 
-        .btn-push { background: var(--success); color: #052e16; grid-column: span 2; font-size: 1rem; }
-        .btn-lock { background: var(--warning); color: #451a03; }
-        .btn-next { background: var(--accent); color: #082f49; }
-        
-        .result-section {
-            margin-top: 25px;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            gap: 12px;
-        }
+        .btn-blue { background: var(--accent); color: #082f49; }
+        .btn-green { background: var(--success); color: #052e16; }
+        .btn-orange { background: var(--warning); color: #451a03; }
+        .btn-red { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid #334155; color: white; }
 
-        .btn-res-yes { background: #1e293b; border: 2px solid var(--success); color: var(--success); flex: 1; }
-        .btn-res-no { background: #1e293b; border: 2px solid var(--danger); color: var(--danger); flex: 1; }
+        button:active { transform: scale(0.96); }
 
-        button:active { transform: scale(0.96); opacity: 0.8; }
-        
-        .log-text {
-            margin-top: 20px;
-            font-size: 0.7rem;
-            color: #64748b;
-            text-align: center;
-        }
+        /* Result Section */
+        #activeOptions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .opt-chip { background: #334155; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+        .opt-chip:hover { background: var(--success); }
+
+        #log { font-family: monospace; font-size: 0.7rem; background: #000; padding: 15px; border-radius: 10px; margin-top: 20px; height: 80px; overflow-y: auto; color: #22c55e; }
     </style>
 </head>
 <body>
 
-<div class="panel">
-    <div class="status-header">
-        <h2 style="font-size: 1.2rem;">Control Panel</h2>
-        <div id="status-pill">Standby</div>
+<div class="admin-box">
+    <h2>HOST COMMAND CENTER</h2>
+
+    <div class="section">
+        <label>Live Match Feed</label>
+        <div class="score-input-group">
+            <input type="text" id="hostTeam" placeholder="Batting Team (e.g. CSK)">
+            <input type="text" id="hostScore" placeholder="Score (e.g. 145/3 18.2)">
+        </div>
     </div>
 
-    <span class="queue-label">UP NEXT IN QUEUE</span>
-    <div id="displayQ" class="current-question-box">Next Ball > 1.5 runs?</div>
-
-    <div class="control-grid">
-        <button class="btn-push" onclick="pushQuestion()">🚀 Push to Live</button>
-        <button class="btn-lock" onclick="lockBets()">🔒 Lock Bets</button>
-        <button class="btn-next" onclick="rotateQuestion()">⏭️ Queue Next</button>
+    <div class="section">
+        <label>Quick Launch Questions</label>
+        <div class="grid">
+            <button class="btn-blue" onclick="sendToss()">🪙 Toss Prediction</button>
+            <button class="btn-blue" onclick="send5OverRuns()">🏏 5-Over Runs</button>
+            <button class="btn-blue" onclick="send5OverWickets()">☝️ 5-Over Wickets</button>
+            <button class="btn-outline" onclick="clearScreen()">🧹 Clear Screen</button>
+        </div>
     </div>
 
-    <div class="result-section">
-        <button class="btn-res-yes" onclick="reveal('YES')">Correct: YES</button>
-        <button class="btn-res-no" onclick="reveal('NO')">Correct: NO</button>
+    <div class="section">
+        <label>Live Controls</label>
+        <div class="grid">
+            <button class="btn-orange" onclick="lockBets()">🔒 Lock Betting</button>
+            <button class="btn-red" onclick="resetGame()">♻️ Hard Reset</button>
+        </div>
     </div>
 
-    <div class="log-text" id="log">System Ready. Awaiting Command.</div>
+    <div class="section" id="resultArea" style="display:none;">
+        <label>Declare Winner (Click Correct Option)</label>
+        <div id="activeOptions"></div>
+    </div>
+
+    <div id="log">System initialized. Waiting for match start...</div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- FIREBASE CONFIG (SAME AS PLAYER APP) ---
     const firebaseConfig = {
-        apiKey: "PASTE_API_KEY",
+        apiKey: "YOUR_API_KEY",
         authDomain: "cricket-web-predict.firebaseapp.com",
         databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com",
         projectId: "cricket-web-predict",
         storageBucket: "cricket-web-predict.appspot.com",
-        messagingSenderId: "PASTE",
-        appId: "PASTE"
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const questionRef = db.ref("currentQuestion");
+    const qRef = db.ref("currentQuestion");
 
-    const questions = [
-        "Boundary on next ball?",
-        "Next ball > 1.5 runs?",
-        "Wicket this over?",
-        "Dot ball next delivery?",
-        "Will there be a Wide ball?",
-        "Batsman to hit a Six?",
-        "Score > 10 runs this over?"
-    ];
-    let qIndex = 0;
+    let currentActiveOptions = [];
 
-    function pushQuestion() {
-    // We use .set() to ensure 'result' is totally deleted
-    questionRef.set({
-        question: questions[qIndex],
-        status: "open",
-        endTime: Date.now() + 10500,
-        startTime: Date.now(), // Added timestamp to force update
-        result: null
-    }).then(() => {
-        updateStatus("Live Now", "status-online");
-        logAction("Pushed: " + questions[qIndex]);
-    });
-}
+    // 1. TOSS PREDICTION (Pre-Match)
+    function sendToss() {
+        const team1 = document.getElementById("hostTeam").value || "TEAM A";
+        const team2 = "TEAM B"; // Change as needed
+        const opts = [team1, "DRAW", "TEAM B"];
+        
+        pushToFirebase("Who will win the Toss?", opts, 3600000); // 1 Hour
+    }
+
+    // 2. RUNS PREDICTION
+    function send5OverRuns() {
+        const opts = ["< 30", "30-45", "45-60", "> 60"];
+        pushToFirebase("Predicted runs in first 5 overs?", opts, 600000); // 10 Mins
+    }
+
+    // 3. WICKETS PREDICTION
+    function send5OverWickets() {
+        const opts = ["0", "1", "2", "3+"];
+        pushToFirebase("Wickets lost in first 5 overs?", opts, 600000);
+    }
+
+    // MASTER PUSH FUNCTION
+    function pushToFirebase(q, opts, duration) {
+        currentActiveOptions = opts;
+        const score = document.getElementById("hostScore").value || "TOSS PENDING";
+        const team = document.getElementById("hostTeam").value || "MATCH STARTING";
+
+        qRef.set({
+            question: q,
+            options: opts,
+            status: "open",
+            endTime: Date.now() + duration,
+            matchScore: score,
+            battingTeam: team,
+            result: null
+        }).then(() => {
+            log("Pushed: " + q);
+            showResultButtons(opts);
+        });
+    }
+
+    function showResultButtons(opts) {
+        const area = document.getElementById("resultArea");
+        const container = document.getElementById("activeOptions");
+        area.style.display = "block";
+        container.innerHTML = "";
+        
+        opts.forEach(opt => {
+            const chip = document.createElement("div");
+            chip.className = "opt-chip";
+            chip.innerText = opt;
+            chip.onclick = () => declareWinner(opt);
+            container.appendChild(chip);
+        });
+    }
+
+    function declareWinner(winner) {
+        qRef.update({ result: winner });
+        log("Declared Result: " + winner);
+        document.getElementById("resultArea").style.display = "none";
+    }
 
     function lockBets() {
-        questionRef.update({ status: "locked" });
-        updateStatus("Locked", "status-locked");
-        logAction("Betting Closed.");
+        qRef.update({ status: "locked" });
+        log("Betting Locked.");
     }
 
-    // --- ADD THIS TO YOUR host.html ---
-
-// Add a New Button in the HTML part
-/* <button class="btn-clear" onclick="clearTable()">🧹 Clear Player Screen</button> 
-*/
-
-// Update CSS for the new button
-/*
-.btn-clear { background: #334155; color: white; margin-top: 15px; width: 100%; }
-*/
-
-function clearTable() {
-    // This removes the 'currentQuestion' node from Firebase
-    // which triggers the (!data) check in the player app
-    questionRef.remove().then(() => {
-        updateStatus("Standby", "");
-        logAction("Screen Cleared - Waiting Mode");
-    });
-}
-
-    function reveal(ans) {
-        questionRef.update({ 
-            result: ans,
-            status: "locked" 
-        });
-        updateStatus("Result Sent", "");
-        logAction("Result set to: " + ans);
+    function clearScreen() {
+        qRef.remove();
+        log("Screen Cleared.");
     }
 
-    function rotateQuestion() {
-        qIndex = (qIndex + 1) % questions.length;
-        document.getElementById("displayQ").innerText = questions[qIndex];
-        logAction("Queued: " + questions[qIndex]);
+    function resetGame() {
+        if(confirm("Reset all player data and screens?")) {
+            qRef.remove();
+            log("HARD RESET COMPLETE.");
+        }
     }
 
-    function updateStatus(text, className) {
-        const pill = document.getElementById("status-pill");
-        pill.innerText = text;
-        pill.className = className;
-    }
-
-    function logAction(msg) {
-        document.getElementById("log").innerText = "[" + new Date().toLocaleTimeString() + "] " + msg;
+    function log(msg) {
+        const logDiv = document.getElementById("log");
+        logDiv.innerHTML = `> [${new Date().toLocaleTimeString()}] ${msg}<br>` + logDiv.innerHTML;
     }
 </script>
-
 </body>
 </html>

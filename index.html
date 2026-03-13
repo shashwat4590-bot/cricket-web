@@ -164,9 +164,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-   // Replace the db.ref("currentQuestion").on section in your index.html with this:
-
-db.ref("currentQuestion").on("value", (snap) => {
+  db.ref("currentQuestion").on("value", (snap) => {
     const data = snap.val();
     if(!data) return;
 
@@ -175,7 +173,7 @@ db.ref("currentQuestion").on("value", (snap) => {
     const lockBtn = document.getElementById('lock-btn');
     const lockMsg = document.getElementById('lock-msg');
 
-    // 1. CHECK IF ACTIVE
+    // 1. WAITING STATE CHECK
     if (data.active === false) {
         qText.innerText = "Waiting for next scenario...";
         box.innerHTML = `<div style="color:gray; margin-top:20px; font-style:italic;">Analyzing match situation...</div>`;
@@ -190,7 +188,7 @@ db.ref("currentQuestion").on("value", (snap) => {
         window.lastQ = qID;
         localStorage.setItem('isLocked', 'false');
         localStorage.setItem('myPick', '');
-        localStorage.setItem('paid', 'false');
+        localStorage.setItem('paid', 'false'); // Reset payout flag for new ball
         lockMsg.style.display = 'none';
         lockBtn.style.display = 'none';
     }
@@ -206,7 +204,10 @@ db.ref("currentQuestion").on("value", (snap) => {
         b.innerText = o;
         
         // Highlight winner if declared
-        if(data.result === o) b.style.background = "#22c55e"; 
+        if(data.result === o) {
+            b.style.background = "#22c55e"; 
+            b.style.color = "white";
+        }
         
         b.onclick = () => {
             if(localStorage.getItem('isLocked') === 'true') return;
@@ -218,15 +219,28 @@ db.ref("currentQuestion").on("value", (snap) => {
         box.appendChild(b);
     });
 
-    // 4. PAYOUT LOGIC (2x Return)
-    if(data.result && localStorage.getItem('myPick') === data.result && localStorage.getItem('paid') === 'false') {
-        tokens += 20; // 10 back + 10 win
-        localStorage.setItem('paid', 'true');
+    // 4. THE PAYOUT ENGINE (FIXED)
+    const userPick = localStorage.getItem('myPick');
+    const alreadyPaid = localStorage.getItem('paid');
+
+    if(data.result && userPick === data.result && alreadyPaid === 'false') {
+        // Force get latest tokens from storage to prevent math errors
+        let currentTokens = parseInt(localStorage.getItem('tks')) || 0;
+        
+        // Add 20 tokens (10 stake back + 10 profit)
+        currentTokens += 20; 
+        
+        // Save and Update global variable
+        tokens = currentTokens;
+        localStorage.setItem('tks', currentTokens);
+        localStorage.setItem('paid', 'true'); // Prevent double payment
+        
+        // Refresh UI
         updateBalanceDisplay();
-        alert("Boom! Correct prediction. +20 Tokens!");
+        
+        alert("🎯 Correct! 20 Tokens added to your wallet.");
     }
 });
-
     function confirmBet() {
         if(tokens < 10) return alert("Not enough tokens!");
         tokens -= 10;

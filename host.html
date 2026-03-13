@@ -70,26 +70,30 @@
         document.getElementById('q-opts').value = o;
         document.getElementById('q-mult').value = m;
     }
+function deploy() {
+    const q = document.getElementById('q-text').value;
+    const rawOpts = document.getElementById('q-opts').value;
+    
+    // Ensure we are creating an actual Array
+    const optsArray = rawOpts.split(',').map(s => s.trim()).filter(s => s !== "");
+    const finalOpts = optsArray.slice(0, 4); // Force max 4
 
-    function deploy() {
-        const q = document.getElementById('q-text').value;
-        const opts = document.getElementById('q-opts').value.split(',').slice(0,4).map(s => s.trim());
-        const mult = parseFloat(document.getElementById('q-mult').value);
-        const time = parseInt(document.getElementById('q-time').value);
+    const mult = parseFloat(document.getElementById('q-mult').value) || 2.0;
+    const score = document.getElementById('q-score').value || "LIVE";
 
-        db.ref("currentQuestion").set({
-            question: q,
-            options: opts,
-            multiplier: mult,
-            matchScore: document.getElementById('q-score').value || "LIVE",
-            endTime: Date.now() + (time * 1000),
-            timestamp: Date.now(),
-            result: null,
-            active: true
-        }).then(() => {
-            updateResultButtons(opts);
-        });
-    }
+    db.ref("currentQuestion").set({
+        question: q,
+        options: finalOpts,
+        multiplier: mult,
+        matchScore: score,
+        timestamp: Date.now(), // This triggers the "New Question" reset in Player App
+        result: null,
+        active: true
+    }).then(() => {
+        updateResultButtons(finalOpts);
+        alert("Question Deployed!");
+    }).catch(err => alert("Firebase Error: " + err.message));
+}
 
     function updateResultButtons(opts) {
         const container = document.getElementById('result-buttons');

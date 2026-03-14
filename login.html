@@ -211,23 +211,33 @@ window.location.href="index.html";
 
 async function signup(){
 
-const email=document.getElementById("email").value;
-const password=document.getElementById("password").value;
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
 
-if(!email||!password){
+if(!email || !password){
 alert("Please fill all fields");
 return;
 }
 
-const {data,error}=await supabaseClient.auth.signUp({
-email:email,
-password:password
+const { data, error } = await supabaseClient.auth.signUp({
+email: email,
+password: password
 });
 
 if(error){
 alert(error.message);
 }else{
-alert("Account created! Check your email to verify.");
+
+const user = data.user;
+
+await supabaseClient
+.from("wallets")
+.insert([
+{ user_id: user.id, balance: 0 }
+]);
+
+alert("Account created!");
+
 }
 
 }

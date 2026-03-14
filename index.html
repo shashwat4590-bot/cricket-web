@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Elite | Master Version</title>
+    <title>PredictLive Elite | Official Hub</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -68,7 +68,7 @@
         .opt-btn.correct { background: var(--green) !important; border-color: var(--green) !important; }
         .opt-btn.wrong { background: var(--red) !important; border-color: var(--red) !important; opacity: 0.6; }
 
-        /* --- STAKE SELECTOR --- */
+        /* --- STAKE PANEL --- */
         .stake-panel { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px; margin-top: 15px; }
         .stake-slider { width: 100%; accent-color: var(--gold); margin: 15px 0; cursor: pointer; }
 
@@ -149,75 +149,77 @@
     const winSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/despot/paws.mp3');
     const lossSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/audiocomponents/creatures/roar.mp3');
 
-    db.ref("questions").on("value", (snap) => {
-        const list = document.getElementById('questions-list');
-        const data = snap.val();
-        list.innerHTML = "";
-        if(!data) { list.innerHTML = "<div class='q-card'><h3>Waiting for match data...</h3></div>"; return; }
+    function renderArena() {
+        db.ref("questions").once("value", (snap) => {
+            const list = document.getElementById('questions-list');
+            const data = snap.val();
+            list.innerHTML = "";
+            if(!data) { list.innerHTML = "<div class='q-card'><h3>Waiting for match data...</h3></div>"; return; }
 
-        Object.keys(data).reverse().slice(0,3).forEach(id => {
-            const q = data[id];
-            const isLocked = localStorage.getItem('lock_'+id) === 'true';
-            const myPick = localStorage.getItem('pick_'+id);
-            const myStake = parseInt(localStorage.getItem('stake_'+id)) || 10;
-            const isPaid = localStorage.getItem('paid_'+id) === 'true';
-            const currentTmp = localStorage.getItem('temp_sel_'+id);
+            Object.keys(data).reverse().slice(0,3).forEach(id => {
+                const q = data[id];
+                const isLocked = localStorage.getItem('lock_'+id) === 'true';
+                const myPick = localStorage.getItem('pick_'+id);
+                const myStake = parseInt(localStorage.getItem('stake_'+id)) || 10;
+                const isPaid = localStorage.getItem('paid_'+id) === 'true';
+                const currentTmp = localStorage.getItem('temp_sel_'+id);
 
-            // FIXED PAYOUT LOGIC
-            if(q.result && !isPaid && myPick) {
-                if(myPick === q.result) {
-                    tokens += Math.floor(myStake * q.multiplier);
-                    winSnd.play().catch(()=>{});
-                    confetti({ particleCount: 150, spread: 70 });
-                } else {
-                    lossSnd.play().catch(()=>{});
-                    // Shake effect is handled by CSS class below
+                // --- PAYOUT LOGIC (STRICT) ---
+                if(q.result && !isPaid && myPick) {
+                    if(myPick === q.result) {
+                        tokens += Math.floor(myStake * q.multiplier);
+                        winSnd.play().catch(()=>{});
+                        confetti({ particleCount: 150, spread: 70 });
+                    } else {
+                        lossSnd.play().catch(()=>{});
+                    }
+                    localStorage.setItem('paid_'+id, 'true');
+                    updateUI();
                 }
-                localStorage.setItem('paid_'+id, 'true');
-                updateUI();
-            }
 
-            let card = `<div class="q-card ${q.result && myPick !== q.result ? 'shake' : ''}">
-                <div style="display:flex; justify-content:space-between; font-weight:900; color:var(--gold); font-size:0.75rem;">
-                    <span>PAYOUT: ${q.multiplier}x</span>
-                    <span style="color:#64748b;">${q.matchScore || ''}</span>
-                </div>
-                <h2 style="margin-top:10px; font-weight:900; font-size:1.4rem;">${q.question}</h2>
-                <div class="opt-grid">
-                    ${q.options.map(o => {
-                        let cls = "";
-                        if(q.result) {
-                            if(o === q.result) cls="correct";
-                            else if(o === myPick) cls="wrong";
-                        } else if(o === currentTmp) cls="selected";
-                        return `<button class="opt-btn ${cls}" onclick="selectOption('${id}','${o}')">${o}</button>`;
-                    }).join('')}
-                </div>`;
-
-            if(!isLocked && !q.result) {
-                card += `<div class="stake-panel">
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
-                        <span>STAKE AMOUNT</span>
-                        <span style="color:var(--gold);" id="disp-${id}">10 Tokens</span>
+                let card = `<div class="q-card ${q.result && myPick !== q.result ? 'shake' : ''}">
+                    <div style="display:flex; justify-content:space-between; font-weight:900; color:var(--gold); font-size:0.75rem;">
+                        <span>PAYOUT: ${q.multiplier}x</span>
+                        <span style="color:#64748b;">${q.matchScore || ''}</span>
                     </div>
-                    <input type="range" class="stake-slider" min="10" max="50" step="10" value="10" oninput="updateStakeDisp('${id}', this.value)">
-                    <button id="btn-lock-${id}" class="btn-main" onclick="confirmBet('${id}')">PLACE BET</button>
-                </div>`;
-            } else {
-                card += `<div class="locked-msg">${q.result ? (myPick === q.result ? 'WINNER!' : 'BET LOST') : 'BET LOCKED: ' + myPick + ' (' + myStake + ')'}</div>`;
-            }
-            card += `</div>`;
-            list.innerHTML += card;
+                    <h2 style="margin-top:10px; font-weight:900; font-size:1.4rem;">${q.question}</h2>
+                    <div class="opt-grid">
+                        ${q.options.map(o => {
+                            let cls = "";
+                            if(q.result) {
+                                if(o === q.result) cls="correct";
+                                else if(o === myPick) cls="wrong";
+                            } else if(o === currentTmp) cls="selected";
+                            return `<button class="opt-btn ${cls}" onclick="selectOption('${id}','${o}')">${o}</button>`;
+                        }).join('')}
+                    </div>`;
+
+                if(!isLocked && !q.result) {
+                    card += `<div id="panel-${id}" class="stake-panel">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
+                            <span>STAKE AMOUNT</span>
+                            <span style="color:var(--gold);" id="disp-${id}">10 Tokens</span>
+                        </div>
+                        <input type="range" class="stake-slider" min="10" max="50" step="10" value="10" oninput="updateStakeDisp('${id}', this.value)">
+                        <button class="btn-main" onclick="confirmBet('${id}')">PLACE BET</button>
+                    </div>`;
+                } else {
+                    card += `<div class="locked-msg">${q.result ? (myPick === q.result ? 'WINNER!' : 'BET LOST') : 'BET LOCKED: ' + myPick}</div>`;
+                }
+                card += `</div>`;
+                list.innerHTML += card;
+            });
+            updateUI();
         });
-        updateUI();
-    });
+    }
+
+    // Real-time listener
+    db.ref("questions").on("value", renderArena);
 
     function selectOption(qId, val) {
         if(localStorage.getItem('lock_'+qId) === 'true') return;
         localStorage.setItem('temp_sel_'+qId, val);
-        const btns = event.target.parentElement.querySelectorAll('.opt-btn');
-        btns.forEach(b => b.classList.remove('selected'));
-        event.target.classList.add('selected');
+        renderArena(); // Instant UI refresh
     }
 
     function updateStakeDisp(id, val) {
@@ -228,20 +230,31 @@
     function confirmBet(qId) {
         const pick = localStorage.getItem('temp_sel_'+qId);
         const stake = parseInt(localStorage.getItem('temp_stake_'+qId)) || 10;
+        
         if(!pick) return alert("Select an option first!");
         if(tokens < stake) return alert("Insufficient balance!");
 
+        // Deduct Tokens
         tokens -= stake;
+        
+        // Save State
         localStorage.setItem('lock_'+qId, 'true');
         localStorage.setItem('pick_'+qId, pick);
         localStorage.setItem('stake_'+qId, stake);
+        
+        // INSTANT UI FEEDBACK (No Refresh needed)
+        const panel = document.getElementById('panel-'+qId);
+        if(panel) panel.outerHTML = `<div class="locked-msg">BET LOCKED: ${pick}</div>`;
+        
         updateUI();
     }
 
     function buyTokens() {
         const inr = parseInt(document.getElementById('buy-amt').value);
         if(inr < 50) return alert("Minimum recharge is 50₹!");
-        tokens += (inr * 2); updateUI(); alert("Recharged " + (inr*2) + " Tokens!");
+        tokens += (inr * 2); 
+        updateUI(); 
+        alert("Recharged " + (inr*2) + " Tokens!");
     }
 
     function updateUI() {

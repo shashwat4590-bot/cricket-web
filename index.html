@@ -282,7 +282,7 @@ if (!session) {
         document.getElementById('n-'+id).classList.add('active');
     }
     updateUI();
-    async function loadBalance(){
+async function loadBalance(){
 
 const { data: { user } } = await supabaseClient.auth.getUser();
 
@@ -305,6 +305,10 @@ document.getElementById("balance").innerText =
 }
 
 loadBalance();
+async function logout(){
+await supabaseClient.auth.signOut();
+window.location.href = "login.html";
+}
 </script>
 </body>
 </html>

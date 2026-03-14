@@ -95,6 +95,9 @@
         <div style="font-weight:900; font-size:1.4rem;">PREDICT<span style="color:var(--accent)">LIVE</span></div>
         <div class="token-pill">🪙 <span id="pill-bal">0</span></div>
     </header>
+    <h3>Transaction History</h3>
+
+<div id="transactions"></div>
 
     <div class="container">
         <div id="home" class="page active">
@@ -120,6 +123,13 @@
             <div class="q-card" style="text-align:center;">
                 <p class="section-title">Your Balance</p>
                 <h1 id="wall-bal" style="font-size:4rem; color:var(--gold); font-weight:900; margin-bottom:20px;">0</h1>
+                <div style="margin-top:20px">
+
+<input id="amount" placeholder="Enter amount" type="number">
+
+<button onclick="addMoney()">Add Money</button>
+
+</div>
                 <div class="stake-panel">
                     <p style="font-size:0.8rem;">Min. Recharge: 50₹ (1₹ = 2 Tokens)</p>
                     <input type="number" id="buy-amt" placeholder="Enter Amount (Min 50)" style="width:100%; background:var(--bg); border:1px solid #334155; padding:18px; border-radius:15px; color:white; margin:15px 0; text-align:center; font-size:1.2rem;">
@@ -261,12 +271,48 @@ if (!session) {
         updateUI();
     }
 
-    function buyTokens() {
-        const inr = parseInt(document.getElementById('buy-amt').value);
-        if(inr < 50) return alert("Minimum recharge is 50₹!");
-        tokens += (inr * 2); 
-        updateUI(); 
-        alert("Recharged " + (inr*2) + " Tokens!");
+    async function buyTokens(){
+
+const inr = parseInt(document.getElementById('buy-amt').value);
+
+if(inr < 50){
+alert("Minimum recharge is 50₹!");
+return;
+}
+
+const tokensToAdd = inr * 2;
+
+const { data: { user } } = await supabaseClient.auth.getUser();
+
+const { data } = await supabaseClient
+.from("wallets")
+.select("balance")
+.eq("user_id", user.id)
+.single();
+
+const newBalance = data.balance + tokensToAdd;
+
+await supabaseClient
+.from("wallets")
+.update({ balance: newBalance })
+.eq("user_id", user.id);
+
+await supabaseClient
+.from("transactions")
+.insert([
+{
+user_id: user.id,
+amount: tokensToAdd,
+type: "token_purchase"
+}
+]);
+
+alert("Recharged " + tokensToAdd + " Tokens!");
+
+loadBalance();
+loadTransactions();
+
+}
     }
 
     function updateUI() {
@@ -305,9 +351,60 @@ document.getElementById("balance").innerText =
 }
 
 loadBalance();
+    
 async function logout(){
 await supabaseClient.auth.signOut();
 window.location.href = "login.html";
+}
+    async function addMoney(){
+
+const amount = document.getElementById("amount").value;
+
+if(!amount || amount <= 0){
+alert("Enter valid amount");
+return;
+}
+
+const { data: { user } } = await supabaseClient.auth.getUser();
+
+const { data } = await supabaseClient
+.from("wallets")
+.select("balance")
+.eq("user_id", user.id)
+.single();
+
+const newBalance = data.balance + parseInt(amount);
+
+await supabaseClient
+.from("wallets")
+.update({ balance: newBalance })
+.eq("user_id", user.id);
+
+alert("Money added successfully");
+
+loadBalance();
+async function loadTransactions(){
+
+const { data: { user } } = await supabaseClient.auth.getUser();
+
+const { data } = await supabaseClient
+.from("transactions")
+.select("*")
+.eq("user_id", user.id)
+.order("created_at", { ascending: false });
+
+let html = "";
+
+data.forEach(t => {
+html += `<p>+₹${t.amount} — ${t.type}</p>`;
+});
+
+document.getElementById("transactions").innerHTML = html;
+
+}
+
+loadTransactions();
+
 }
 </script>
 </body>

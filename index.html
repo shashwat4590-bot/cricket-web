@@ -271,41 +271,36 @@ if (!session) {
         updateUI();
     }
 
-    async function buyTokens(){
+   async function buyTokens(){
 
-const inr = parseInt(document.getElementById('buy-amt').value);
+const inr = parseInt(document.getElementById("buy-amt").value)
 
 if(inr < 50){
-alert("Minimum recharge is 50₹!");
-return;
+alert("Minimum recharge ₹50")
+return
 }
 
-const tokensToAdd = inr * 2;
+const tokens = inr * 2
 
-const { data: { user } } = await supabaseClient.auth.getUser();
+const { data: { user } } = await supabaseClient.auth.getUser()
 
-const { data } = await supabaseClient
-.from("wallets")
-.select("balance")
-.eq("user_id", user.id)
-.single();
+await fetch("/api/addMoney",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+user_id:user.id,
+amount:tokens
+})
+})
 
-const newBalance = data.balance + tokensToAdd;
+alert("Recharged " + tokens + " Tokens")
 
-await supabaseClient
-.from("wallets")
-.update({ balance: newBalance })
-.eq("user_id", user.id);
+loadBalance()
+loadTransactions()
 
-await supabaseClient
-.from("transactions")
-.insert([
-{
-user_id: user.id,
-amount: tokensToAdd,
-type: "token_purchase"
 }
-]);
 
 alert("Recharged " + tokensToAdd + " Tokens!");
 

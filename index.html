@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Elite | Official Hub</title>
+    <title>PredictLive Elite | Master Version</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -51,7 +51,6 @@
         
         .mini-leaderboard { background: var(--card); border-radius: 25px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .rank-item:last-child { border: none; }
 
         /* --- ARENA: CARDS & BUTTONS --- */
         .q-card {
@@ -73,8 +72,9 @@
         .stake-panel { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px; margin-top: 15px; }
         .stake-slider { width: 100%; accent-color: var(--gold); margin: 15px 0; cursor: pointer; }
 
-        .btn-main { background: var(--accent); color: #000; border: none; padding: 20px; border-radius: 20px; font-weight: 900; width: 100%; cursor: pointer; font-size: 1.1rem; }
+        .btn-main { background: var(--accent); color: #000; border: none; padding: 20px; border-radius: 20px; font-weight: 900; width: 100%; cursor: pointer; font-size: 1.1rem; transition: 0.3s; }
         .btn-gold { background: var(--gold); }
+        .locked-msg { text-align:center; padding:18px; background:rgba(255,255,255,0.05); border-radius:20px; color:var(--accent); font-weight:900; letter-spacing:1px; border: 1px dashed var(--accent); }
         
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .shake { animation: shakeEffect 0.5s; }
@@ -103,18 +103,9 @@
 
             <p class="section-title">Global Leaderboard</p>
             <div class="mini-leaderboard">
-                <div class="rank-item">
-                    <span>🥇 <b>Aryan_Kings</b></span>
-                    <span style="color:var(--gold); font-weight:900;">14,250</span>
-                </div>
-                <div class="rank-item">
-                    <span>🥈 <b>CricketGod_99</b></span>
-                    <span style="color:var(--gold); font-weight:900;">9,800</span>
-                </div>
-                <div class="rank-item">
-                    <span>🥉 <b>SkyWalker_7</b></span>
-                    <span style="color:var(--gold); font-weight:900;">7,420</span>
-                </div>
+                <div class="rank-item"><span>🥇 <b>Aryan_Kings</b></span><span style="color:var(--gold); font-weight:900;">14,250</span></div>
+                <div class="rank-item"><span>🥈 <b>CricketGod_99</b></span><span style="color:var(--gold); font-weight:900;">9,800</span></div>
+                <div class="rank-item"><span>🥉 <b>SkyWalker_7</b></span><span style="color:var(--gold); font-weight:900;">7,420</span></div>
             </div>
         </div>
 
@@ -127,8 +118,8 @@
                 <p class="section-title">Your Balance</p>
                 <h1 id="wall-bal" style="font-size:4rem; color:var(--gold); font-weight:900; margin-bottom:20px;">0</h1>
                 <div class="stake-panel">
-                    <p style="font-size:0.8rem;">Recharge: 1₹ = 2 Tokens</p>
-                    <input type="number" id="buy-amt" placeholder="Enter Amount ₹" style="width:100%; background:var(--bg); border:1px solid #334155; padding:18px; border-radius:15px; color:white; margin:15px 0; text-align:center; font-size:1.2rem;">
+                    <p style="font-size:0.8rem;">Min. Recharge: 50₹ (1₹ = 2 Tokens)</p>
+                    <input type="number" id="buy-amt" placeholder="Enter Amount (Min 50)" style="width:100%; background:var(--bg); border:1px solid #334155; padding:18px; border-radius:15px; color:white; margin:15px 0; text-align:center; font-size:1.2rem;">
                     <button class="btn-main btn-gold" onclick="buyTokens()">BUY TOKENS</button>
                 </div>
             </div>
@@ -158,16 +149,11 @@
     const winSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/despot/paws.mp3');
     const lossSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/audiocomponents/creatures/roar.mp3');
 
-    // --- MAIN ENGINE ---
     db.ref("questions").on("value", (snap) => {
         const list = document.getElementById('questions-list');
         const data = snap.val();
         list.innerHTML = "";
-
-        if(!data) {
-            list.innerHTML = "<div class='q-card'><h3>Waiting for match data...</h3></div>";
-            return;
-        }
+        if(!data) { list.innerHTML = "<div class='q-card'><h3>Waiting for match data...</h3></div>"; return; }
 
         Object.keys(data).reverse().slice(0,3).forEach(id => {
             const q = data[id];
@@ -175,67 +161,48 @@
             const myPick = localStorage.getItem('pick_'+id);
             const myStake = parseInt(localStorage.getItem('stake_'+id)) || 10;
             const isPaid = localStorage.getItem('paid_'+id) === 'true';
-            const tempSelected = localStorage.getItem('temp_sel_'+id);
+            const currentTmp = localStorage.getItem('temp_sel_'+id);
 
-            // Handle Payouts
-            if(q.result && !isPaid && myPick) {
-                if(myPick === q.result) {
-                    tokens += Math.floor(myStake * q.multiplier);
-                    winSnd.play().catch(()=>{});
-                    confetti({ particleCount: 150, spread: 70 });
-                } else {
-                    lossSnd.play().catch(()=>{});
-                }
-                localStorage.setItem('paid_'+id, 'true');
-                updateUI();
-            }
+            if(q.result && !isPaid && myPick) processPayout(id, q, myPick, myStake);
 
-            let card = `
-                <div class="q-card ${q.result && myPick !== q.result ? 'shake' : ''}">
-                    <div style="display:flex; justify-content:space-between; font-weight:900; color:var(--gold); font-size:0.75rem;">
-                        <span>PAYOUT: ${q.multiplier}x</span>
-                        <span style="color:#64748b;">${q.matchScore || ''}</span>
-                    </div>
-                    <h2 style="margin-top:10px; font-weight:900; font-size:1.4rem;">${q.question}</h2>
-                    
-                    <div class="opt-grid">
-                        ${q.options.map(o => {
-                            let cls = "";
-                            if(q.result) {
-                                if(o === q.result) cls="correct";
-                                else if(o === myPick) cls="wrong";
-                            } else if(o === tempSelected) {
-                                cls="selected";
-                            }
-                            return `<button class="opt-btn ${cls}" onclick="selectOption('${id}','${o}')">${o}</button>`;
-                        }).join('')}
-                    </div>
-
-                    ${(!isLocked && !q.result) ? `
-                        <div class="stake-panel">
-                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
-                                <span>STAKE AMOUNT</span>
-                                <span style="color:var(--gold);" id="disp-${id}">10 Tokens</span>
-                            </div>
-                            <input type="range" class="stake-slider" min="10" max="50" step="10" value="10" oninput="updateStakeDisp('${id}', this.value)">
-                            <button class="btn-main" onclick="confirmBet('${id}')">PLACE BET</button>
-                        </div>
-                    ` : `<div style="text-align:center; padding:15px; background:rgba(255,255,255,0.03); border-radius:15px; color:var(--accent); font-weight:900;">
-                            ${q.result ? 'BALL FINISHED' : 'LOCKED: ' + myPick + ' (' + myStake + ')'}
-                         </div>`}
+            let card = `<div class="q-card ${q.result && myPick !== q.result ? 'shake' : ''}">
+                <div style="display:flex; justify-content:space-between; font-weight:900; color:var(--gold); font-size:0.75rem;">
+                    <span>PAYOUT: ${q.multiplier}x</span>
+                    <span style="color:#64748b;">${q.matchScore || ''}</span>
                 </div>
-            `;
+                <h2 style="margin-top:10px; font-weight:900; font-size:1.4rem;">${q.question}</h2>
+                <div class="opt-grid">
+                    ${q.options.map(o => {
+                        let cls = "";
+                        if(q.result) {
+                            if(o === q.result) cls="correct";
+                            else if(o === myPick) cls="wrong";
+                        } else if(o === currentTmp) cls="selected";
+                        return `<button class="opt-btn ${cls}" onclick="selectOption('${id}','${o}')">${o}</button>`;
+                    }).join('')}
+                </div>`;
+
+            if(!isLocked && !q.result) {
+                card += `<div class="stake-panel">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:800;">
+                        <span>STAKE AMOUNT</span>
+                        <span style="color:var(--gold);" id="disp-${id}">10 Tokens</span>
+                    </div>
+                    <input type="range" class="stake-slider" min="10" max="50" step="10" value="10" oninput="updateStakeDisp('${id}', this.value)">
+                    <button id="btn-lock-${id}" class="btn-main" onclick="confirmBet('${id}')">PLACE BET</button>
+                </div>`;
+            } else {
+                card += `<div class="locked-msg">${q.result ? 'BALL FINISHED' : 'BET LOCKED: ' + myPick + ' (' + myStake + ')'}</div>`;
+            }
+            card += `</div>`;
             list.innerHTML += card;
         });
         updateUI();
     });
 
-    // --- LOGIC FUNCTIONS ---
     function selectOption(qId, val) {
         if(localStorage.getItem('lock_'+qId) === 'true') return;
         localStorage.setItem('temp_sel_'+qId, val);
-        // We force a local re-render or wait for Firebase sync. 
-        // For instant feel, we manually toggle classes:
         const btns = event.target.parentElement.querySelectorAll('.opt-btn');
         btns.forEach(b => b.classList.remove('selected'));
         event.target.classList.add('selected');
@@ -249,7 +216,6 @@
     function confirmBet(qId) {
         const pick = localStorage.getItem('temp_sel_'+qId);
         const stake = parseInt(localStorage.getItem('temp_stake_'+qId)) || 10;
-        
         if(!pick) return alert("Select an option first!");
         if(tokens < stake) return alert("Insufficient balance!");
 
@@ -257,12 +223,25 @@
         localStorage.setItem('lock_'+qId, 'true');
         localStorage.setItem('pick_'+qId, pick);
         localStorage.setItem('stake_'+qId, stake);
+        
+        // Instant visual feedback: hide the panel content
+        const parent = document.getElementById('btn-lock-'+qId).parentElement;
+        parent.innerHTML = `<div class="locked-msg" style="margin-top:0">BET LOCKED: ${pick} (${stake})</div>`;
         updateUI();
     }
 
     function buyTokens() {
         const inr = parseInt(document.getElementById('buy-amt').value);
-        if(inr > 0) { tokens += (inr * 2); updateUI(); alert("Added " + (inr*2) + " Tokens!"); }
+        if(inr < 50) return alert("Minimum recharge is 50₹!");
+        tokens += (inr * 2); updateUI(); alert("Recharged " + (inr*2) + " Tokens!");
+    }
+
+    function processPayout(id, q, pick, stake) {
+        tokens += Math.floor(stake * q.multiplier);
+        winSnd.play().catch(()=>{});
+        confetti({ particleCount: 150, spread: 70 });
+        localStorage.setItem('paid_'+id, 'true');
+        updateUI();
     }
 
     function updateUI() {
@@ -277,7 +256,6 @@
         document.getElementById(id).classList.add('active');
         document.getElementById('n-'+id).classList.add('active');
     }
-
     updateUI();
 </script>
 </body>

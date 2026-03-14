@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Elite</title>
+    <title>PredictLive Elite | Triple Arena</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -24,79 +24,65 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
 
-        /* Floating Premium Header */
+        /* --- UI COMPONENTS --- */
         .header-bar {
             position: fixed; top: 0; width: 100%; height: 80px;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 25px; background: rgba(2, 6, 23, 0.7);
+            padding: 0 25px; background: rgba(2, 6, 23, 0.8);
             backdrop-filter: blur(15px); z-index: 2000; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .token-pill {
             background: rgba(15, 23, 42, 0.9); border: 1px solid var(--gold);
-            padding: 10px 20px; border-radius: 50px;
-            display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--gold);
+            padding: 10px 20px; border-radius: 50px; font-weight: 900; color: var(--gold);
             box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
         }
 
-        /* Container */
-        .container { padding: 110px 20px 120px; max-width: 450px; margin: 0 auto; }
+        .container { padding: 100px 20px 120px; max-width: 450px; margin: 0 auto; }
         .page { display: none; width: 100%; animation: slideUp 0.4s ease; }
         .page.active { display: flex; flex-direction: column; }
 
-        /* HOME PAGE: High-End Dashboard */
+        /* --- CARDS --- */
         .promo-banner {
             background: linear-gradient(135deg, #0ea5e9, #6366f1);
             border-radius: 30px; padding: 30px; margin-bottom: 25px;
             box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
         }
-        .match-card {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border-radius: 28px; padding: 25px; margin-bottom: 20px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .live-indicator {
-            display: flex; align-items: center; gap: 6px; color: var(--red);
-            font-size: 0.7rem; font-weight: 900; letter-spacing: 1px;
-        }
-        .live-dot { height: 8px; width: 8px; background: var(--red); border-radius: 50%; animation: pulse 1.5s infinite; }
 
-        /* ARENA PAGE: Gaming UI */
         .score-box {
-            background: var(--card); border-radius: 30px; padding: 35px 20px;
-            text-align: center; margin-bottom: 20px; border: 1px solid #1e293b;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            background: var(--card); border-radius: 30px; padding: 30px 20px;
+            text-align: center; margin-bottom: 25px; border: 1px solid #1e293b;
         }
-        #live-score { font-size: 4rem; font-weight: 900; line-height: 1; margin: 10px 0; letter-spacing: -2px; }
+        #live-score { font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; }
 
         .q-card {
-            background: var(--card); border-radius: 30px; padding: 30px 20px;
-            border: 1px solid #1e293b; text-align: center;
+            background: var(--card); border-radius: 30px; padding: 25px 20px;
+            border: 1px solid #1e293b; text-align: center; margin-bottom: 20px;
+            position: relative; transition: 0.3s;
         }
-        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; }
-        
+
+        /* --- BUTTONS & STATES --- */
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
         .opt-btn {
             background: #1e293b; border: 2px solid #334155; color: white;
-            padding: 24px 10px; border-radius: 20px; font-weight: 700;
-            cursor: pointer; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px 10px; border-radius: 18px; font-weight: 700;
+            cursor: pointer; transition: 0.2s;
         }
-        .opt-btn.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); transform: scale(1.02); }
-        .opt-btn.correct { background: var(--green) !important; border-color: var(--green) !important; color: white; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
-        .opt-btn.wrong { background: var(--red) !important; border-color: var(--red) !important; color: white; opacity: 0.8; }
+        .opt-btn.selected { border-color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+        .opt-btn.correct { background: var(--green) !important; border-color: var(--green) !important; }
+        .opt-btn.wrong { background: var(--red) !important; border-color: var(--red) !important; }
 
-        .btn-action { background: var(--accent); color: #000; border: none; padding: 20px; border-radius: 20px; font-weight: 900; width: 100%; cursor: pointer; margin-top: 25px; font-size: 1.1rem; }
+        .btn-action { background: var(--accent); color: #000; border: none; padding: 18px; border-radius: 18px; font-weight: 900; width: 100%; cursor: pointer; margin-top: 20px; }
         .btn-gold { background: var(--gold); }
 
-        /* Animations */
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        /* --- ANIMATIONS --- */
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .shake { animation: shakeEffect 0.5s; }
-        @keyframes shakeEffect { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } }
+        @keyframes shakeEffect { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 
-        /* Navigation */
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 25px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000; }
-        .nav-link { color: #64748b; font-weight: 800; font-size: 0.8rem; cursor: pointer; letter-spacing: 1px; transition: 0.3s; }
+        /* --- NAV --- */
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--card); display: flex; justify-content: space-around; padding: 22px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 1000; }
+        .nav-link { color: #64748b; font-weight: 800; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; }
         .nav-link.active { color: var(--accent); }
     </style>
 </head>
@@ -110,49 +96,24 @@
     <div class="container">
         <div id="home" class="page active">
             <div class="promo-banner">
-                <h2 style="font-weight:900; font-size:1.8rem; margin-bottom:5px;">IPL 2026 Finals</h2>
-                <p style="opacity:0.9; font-weight:600;">Double your tokens every ball.</p>
+                <h2 style="font-weight:900;">Triple Arena</h2>
+                <p style="opacity:0.9;">Predict 3 events at once!</p>
             </div>
-            
-            <p style="color:#64748b; font-weight:800; font-size:0.75rem; letter-spacing:2px; margin-bottom:15px; margin-left:5px;">LIVE MATCHES</p>
-            <div class="match-card">
-                <div>
-                    <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-                    <h3 style="font-size:1.4rem; font-weight:900; margin-top:5px;">CSK vs MI</h3>
-                    <p style="color:#64748b; font-size:0.8rem; font-weight:600;">Match Center Open</p>
-                </div>
-                <button onclick="nav('arena')" style="background:var(--accent); border:none; padding:12px 25px; border-radius:15px; font-weight:900; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);">PLAY</button>
-            </div>
-
-            <div class="match-card" style="opacity:0.5; filter:grayscale(1);">
-                <div>
-                    <p style="color:#94a3b8; font-size:0.7rem; font-weight:800;">UPCOMING • 07:30 PM</p>
-                    <h3 style="font-size:1.4rem; font-weight:900; margin-top:5px;">RCB vs GT</h3>
-                </div>
+            <div class="score-box" style="text-align: left; padding: 20px;">
+                <p style="color:var(--accent); font-weight:800; font-size:0.7rem;">FEATURED MATCH</p>
+                <h3 style="font-size:1.5rem; margin: 5px 0;">CSK vs MI</h3>
+                <button class="btn-action" onclick="nav('arena')">JOIN ARENA</button>
             </div>
         </div>
 
         <div id="arena" class="page">
-            <div class="score-box">
-                <p style="color:var(--accent); font-weight:800; font-size:0.75rem; letter-spacing:2px; margin-bottom:10px;">CSK vs MI LIVE</p>
-                <div id="live-score">0/0</div>
-                <p id="batting-status" style="color:#64748b; font-weight:700; font-size:0.9rem;">Match Situation Updating...</p>
             </div>
-
-            <div class="q-card" id="main-q-card">
-                <h3 id="q-text" style="font-size:1.5rem; font-weight:900; margin-bottom:25px; color:#f8fafc;">Waiting for next ball...</h3>
-                <div id="options-box" class="opt-grid"></div>
-                <button id="lock-btn" class="btn-action btn-gold" style="display:none;" onclick="confirmBet()">LOCK PREDICTION (10)</button>
-                <div id="lock-msg" style="display:none; margin-top:20px; font-weight:900; color:var(--accent); font-size:1.2rem;">LOCKED IN</div>
-            </div>
-        </div>
 
         <div id="wallet" class="page">
-            <div class="score-box" style="border-color:var(--gold); background: linear-gradient(180deg, rgba(251, 191, 36, 0.05), transparent);">
-                <p style="color:#64748b; font-weight:800; letter-spacing:1px;">AVAILABLE BALANCE</p>
-                <div id="wall-bal" style="font-size:5rem; font-weight:900; color:var(--gold);">0</div>
-                <input type="number" id="buy-amt" style="width:100%; background:#020617; border:2px solid #334155; padding:22px; border-radius:22px; color:white; text-align:center; font-size:1.5rem; margin:25px 0; outline:none;" placeholder="Enter Amount ₹">
-                <button class="btn-action btn-gold" onclick="purchaseTokens()">RECHARGE WALLET</button>
+            <div class="score-box" style="border-color: var(--gold);">
+                <p style="color:#64748b;">TOTAL BALANCE</p>
+                <div id="wall-bal" style="font-size:4rem; font-weight:900; color:var(--gold);">0</div>
+                <button class="btn-action btn-gold" onclick="addTokens()">GET 500 TOKENS</button>
             </div>
         </div>
     </div>
@@ -177,98 +138,107 @@
     const db = firebase.database();
 
     let tokens = parseInt(localStorage.getItem('tks')) || 100;
-    let selectedPick = "";
-
-    // Pro Audio (Delayed load to respect browser policies)
     const winSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/despot/paws.mp3');
     const lossSnd = new Audio('https://codeskulptor-demos.commondatastorage.googleapis.com/audiocomponents/creatures/roar.mp3');
 
-    db.ref("currentQuestion").on("value", (snap) => {
+    // --- CORE ARENA ENGINE ---
+    db.ref("questions").on("value", (snap) => {
+        const arenaBox = document.getElementById('arena');
         const data = snap.val();
-        if(!data) return;
+        
+        let html = `
+            <div class="score-box">
+                <p style="color:var(--accent); font-weight:800; font-size:0.75rem; letter-spacing:2px;">TRIPLE ARENA LIVE</p>
+                <div id="live-score">${data ? Object.values(data).pop().matchScore || '0/0' : '0/0'}</div>
+            </div>
+        `;
 
-        // Reset for New Deployment
-        if(window.lastQ !== (data.question + data.timestamp)) {
-            window.lastQ = (data.question + data.timestamp);
-            localStorage.setItem('isLocked', 'false');
-            localStorage.setItem('myPick', '');
-            localStorage.setItem('paid', 'false');
-            document.getElementById('lock-msg').style.display = 'none';
-            document.getElementById('lock-btn').style.display = 'none';
-        }
-
-        if(!data.active) {
-            document.getElementById('q-text').innerText = "Analyzing Situation...";
-            document.getElementById('options-box').innerHTML = "";
+        if (!data) {
+            html += `<div class="q-card"><h3>Waiting for Host...</h3></div>`;
+            arenaBox.innerHTML = html;
             return;
         }
 
-        document.getElementById('q-text').innerText = data.question;
-        document.getElementById('live-score').innerText = data.matchScore;
+        // Render up to 3 Active Questions
+        Object.keys(data).reverse().slice(0,3).forEach(id => {
+            const q = data[id];
+            const isLocked = localStorage.getItem('lock_' + id) === 'true';
+            const myPick = localStorage.getItem('pick_' + id);
+            const isPaid = localStorage.getItem('paid_' + id) === 'true';
+            const tempPick = localStorage.getItem('temp_' + id);
 
-        const box = document.getElementById('options-box');
-        box.innerHTML = "";
-        data.options.slice(0,4).forEach(o => {
-            const b = document.createElement('button');
-            b.className = "opt-btn";
-            b.innerText = o;
-            
-            const myPick = localStorage.getItem('myPick');
-            if(data.result) {
-                if(o === data.result) b.classList.add('correct');
-                else if(o === myPick) b.classList.add('wrong');
+            // Handle Payouts immediately when result appears
+            if (q.result && !isPaid && myPick) {
+                processResult(id, q, myPick);
             }
 
-            b.onclick = () => {
-                if(localStorage.getItem('isLocked') === 'true' || data.result) return;
-                document.querySelectorAll('.opt-btn').forEach(btn => btn.classList.remove('selected'));
-                b.classList.add('selected');
-                selectedPick = o;
-                document.getElementById('lock-btn').style.display = "block";
-            };
-            box.appendChild(b);
+            html += `
+                <div class="q-card ${q.result && myPick && myPick !== q.result ? 'shake' : ''}">
+                    <div style="position:absolute; top:15px; right:20px; color:var(--gold); font-weight:900; font-size:0.8rem;">${q.multiplier}x</div>
+                    <h3 style="font-size:1.3rem; font-weight:900; margin-bottom:20px; text-align:left; padding-right:40px;">${q.question}</h3>
+                    
+                    <div class="opt-grid">
+                        ${q.options.map(o => {
+                            let cls = "";
+                            if (q.result) {
+                                if (o === q.result) cls = "correct";
+                                else if (o === myPick) cls = "wrong";
+                            } else {
+                                if (o === tempPick) cls = "selected";
+                            }
+                            return `<button class="opt-btn ${cls}" onclick="handleSelect('${id}', '${o}')">${o}</button>`;
+                        }).join('')}
+                    </div>
+
+                    ${(!isLocked && !q.result) ? `<button class="btn-action btn-gold" onclick="handleLock('${id}')">CONFIRM BET (10)</button>` : ''}
+                    ${(isLocked && !q.result) ? `<div style="margin-top:15px; font-weight:900; color:var(--accent);">LOCKED: ${myPick}</div>` : ''}
+                </div>
+            `;
         });
 
-        // Final Result Logic
-        if(data.result && localStorage.getItem('paid') === 'false') {
-            const myPick = localStorage.getItem('myPick');
-            if(myPick) {
-                if(myPick === data.result) {
-                    tokens += Math.floor(10 * (data.multiplier || 2));
-                    winSnd.play().catch(()=>{});
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                } else {
-                    lossSnd.play().catch(()=>{});
-                    document.getElementById('main-q-card').classList.add('shake');
-                    setTimeout(() => document.getElementById('main-q-card').classList.remove('shake'), 500);
-                }
-            }
-            localStorage.setItem('paid', 'true');
-            localStorage.setItem('tks', tokens);
-            updateUI();
-        }
+        arenaBox.innerHTML = html;
+        updateUI();
     });
 
-    function confirmBet() {
-        if(tokens < 10) return alert("Insufficient Tokens!");
-        tokens -= 10;
-        localStorage.setItem('tks', tokens);
-        localStorage.setItem('isLocked', 'true');
-        localStorage.setItem('myPick', selectedPick);
-        updateUI();
-        document.getElementById('lock-btn').style.display = "none";
-        document.getElementById('lock-msg').style.display = "block";
-        document.getElementById('lock-msg').innerText = "LOCKED: " + selectedPick;
+    function handleSelect(qId, val) {
+        if (localStorage.getItem('lock_' + qId) === 'true') return;
+        localStorage.setItem('temp_' + qId, val);
+        // Refresh UI state without reloading page
+        const btns = event.target.parentElement.querySelectorAll('.opt-btn');
+        btns.forEach(b => b.classList.remove('selected'));
+        event.target.classList.add('selected');
+        event.target.parentElement.parentElement.querySelector('.btn-gold').style.display = 'block';
     }
 
-    function purchaseTokens() {
-        const val = parseInt(document.getElementById('buy-amt').value);
-        if(val >= 50) { tokens += (val * 2); updateUI(); alert("Balance Updated!"); }
+    function handleLock(qId) {
+        const pick = localStorage.getItem('temp_' + qId);
+        if (!pick) return;
+        if (tokens < 10) return alert("Not enough tokens!");
+
+        tokens -= 10;
+        localStorage.setItem('lock_' + qId, 'true');
+        localStorage.setItem('pick_' + qId, pick);
+        updateUI();
     }
+
+    function processResult(id, q, myPick) {
+        if (myPick === q.result) {
+            tokens += Math.floor(10 * q.multiplier);
+            winSnd.play().catch(()=>{});
+            confetti({ particleCount: 150, spread: 70 });
+        } else {
+            lossSnd.play().catch(()=>{});
+        }
+        localStorage.setItem('paid_' + id, 'true');
+        updateUI();
+    }
+
+    function addTokens() { tokens += 500; updateUI(); alert("Added 500 Tokens!"); }
 
     function updateUI() {
         document.getElementById('pill-bal').innerText = tokens;
         document.getElementById('wall-bal').innerText = tokens;
+        localStorage.setItem('tks', tokens);
     }
 
     function nav(id) {
@@ -277,6 +247,7 @@
         document.getElementById(id).classList.add('active');
         document.getElementById('n-' + id).classList.add('active');
     }
+
     updateUI();
 </script>
 </body>

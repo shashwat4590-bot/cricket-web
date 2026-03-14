@@ -134,6 +134,11 @@
     </nav>
 
 <script>
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+if (!session) {
+    window.location.href = "login.html";
+}
     const supabaseClient = supabase.createClient(
   "https://rogxkddufkmjexekwzzr.supabase.co",
   "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt"

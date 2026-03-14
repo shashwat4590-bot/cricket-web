@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PredictLive Elite | Login</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+--bg: #020617;
+--card: #0f172a;
+--accent: #38bdf8;
+--gold: #fbbf24;
+--glass: rgba(255, 255, 255, 0.03);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+
+body{
+background-color:var(--bg);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+overflow:hidden;
+}
+
+.login-container{
+width:100%;
+max-width:400px;
+padding:40px 30px;
+background:linear-gradient(160deg,#1e293b 0%,#0f172a 100%);
+border-radius:35px;
+border:1px solid rgba(255,255,255,0.05);
+box-shadow:0 25px 50px rgba(0,0,0,0.5);
+text-align:center;
+animation:slideUp 0.6s ease-out;
+}
+
+.logo{
+font-weight:900;
+font-size:2rem;
+margin-bottom:10px;
+letter-spacing:-1px;
+}
+
+.logo span{color:var(--accent);}
+
+.subtitle{
+color:#64748b;
+font-size:0.9rem;
+margin-bottom:35px;
+font-weight:600;
+}
+
+.input-group{
+margin-bottom:20px;
+text-align:left;
+}
+
+.input-group label{
+font-size:0.75rem;
+font-weight:800;
+color:#94a3b8;
+margin-left:15px;
+margin-bottom:8px;
+display:block;
+text-transform:uppercase;
+letter-spacing:1px;
+}
+
+input{
+width:100%;
+background:rgba(2,6,23,0.5);
+border:2px solid #334155;
+padding:18px 25px;
+border-radius:20px;
+color:white;
+font-size:1rem;
+font-weight:600;
+transition:0.3s;
+outline:none;
+}
+
+input:focus{
+border-color:var(--accent);
+box-shadow:0 0 15px rgba(56,189,248,0.1);
+}
+
+.btn-primary{
+width:100%;
+background:var(--accent);
+color:#020617;
+border:none;
+padding:18px;
+border-radius:20px;
+font-weight:900;
+font-size:1.1rem;
+cursor:pointer;
+margin-top:10px;
+transition:0.3s;
+box-shadow:0 10px 20px rgba(56,189,248,0.2);
+}
+
+.btn-primary:active{transform:scale(0.98);}
+
+.divider{
+margin:25px 0;
+display:flex;
+align-items:center;
+color:#475569;
+font-size:0.8rem;
+font-weight:800;
+}
+
+.divider::before,.divider::after{
+content:"";
+flex:1;
+height:1px;
+background:rgba(255,255,255,0.05);
+margin:0 15px;
+}
+
+.btn-secondary{
+width:100%;
+background:transparent;
+color:var(--gold);
+border:2px solid var(--gold);
+padding:16px;
+border-radius:20px;
+font-weight:800;
+cursor:pointer;
+transition:0.3s;
+}
+
+.btn-secondary:hover{
+background:rgba(251,191,36,0.05);
+}
+
+@keyframes slideUp{
+from{opacity:0;transform:translateY(30px);}
+to{opacity:1;transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+<div class="logo">PREDICT<span>LIVE</span></div>
+<p class="subtitle">Elite Sports Forecasting</p>
+
+<div class="input-group">
+<label>Email Address</label>
+<input type="email" id="email" placeholder="name@example.com">
+</div>
+
+<div class="input-group">
+<label>Password</label>
+<input type="password" id="password" placeholder="••••••••">
+</div>
+
+<button class="btn-primary" onclick="login()">SIGN IN</button>
+
+<div class="divider">OR</div>
+
+<button class="btn-secondary" onclick="signup()">CREATE NEW ACCOUNT</button>
+
+<p style="margin-top:25px;font-size:0.75rem;color:#475569;">
+By continuing, you agree to our Terms of Service.
+</p>
+
+</div>
+
+<script>
+
+const supabaseUrl = "https://rogxkddufkmjexekwzzr.supabase.co";
+const supabaseKey = "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt";
+
+const { createClient } = supabase;
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+async function login(){
+
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
+
+if(!email||!password){
+alert("Please fill all fields");
+return;
+}
+
+const {data,error}=await supabaseClient.auth.signInWithPassword({
+email:email,
+password:password
+});
+
+if(error){
+alert(error.message);
+}else{
+alert("Login successful!");
+window.location.href="index.html";
+}
+
+}
+
+async function signup(){
+
+const email=document.getElementById("email").value;
+const password=document.getElementById("password").value;
+
+if(!email||!password){
+alert("Please fill all fields");
+return;
+}
+
+const {data,error}=await supabaseClient.auth.signUp({
+email:email,
+password:password
+});
+
+if(error){
+alert(error.message);
+}else{
+alert("Account created! Check your email to verify.");
+}
+
+}
+
+</script>
+
+</body>
+</html>

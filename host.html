@@ -3,51 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredictLive Admin | Ultimate</title>
+    <title>PredictLive Admin | Triple Management</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --accent: #38bdf8; --bg: #020617; --card: #1e293b; }
-        body { background: var(--bg); color: white; font-family: sans-serif; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid #334155; }
-        input { background: #0f172a; border: 1px solid #475569; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; }
-        .btn { padding: 15px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        :root { --accent: #38bdf8; --bg: #020617; --card: #0f172a; --gold: #fbbf24; }
+        body { background: var(--bg); color: white; font-family: 'Outfit', sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #334155; }
+        h3 { margin-bottom: 20px; color: var(--accent); }
+        input { background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 12px; font-size: 1rem; }
+        .btn { padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; width: 100%; margin-bottom: 10px; transition: 0.2s; }
         .btn-blue { background: var(--accent); color: #000; }
-        .btn-red { background: #ef4444; color: white; }
-        .lib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .lib-card { background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; font-size: 0.85rem; }
-        #result-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .res-btn { background: #fbbf24; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-gold { background: var(--gold); color: #000; }
+        .btn-red { background: #ef4444; color: white; margin-top: 20px; }
+        
+        /* Active Cards List */
+        .active-q { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
+        .res-btn { background: var(--gold); color: black; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin: 4px; cursor: pointer; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="panel">
-        <h3>1. Setup Prediction</h3>
-        <input type="text" id="q-text" placeholder="Question Text">
+        <h3>🚀 Deploy New Card</h3>
+        <input type="text" id="q-text" placeholder="Question (e.g. Next Wicket?)">
         <input type="text" id="q-opts" placeholder="Options (Max 4, comma separated)">
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="q-mult" placeholder="Multiplier (e.g. 2.5)" value="2.0">
-            <input type="number" id="q-time" placeholder="Timer (sec)" value="30">
-        </div>
-        <input type="text" id="q-score" placeholder="Current Score">
+        <input type="number" id="q-mult" placeholder="Multiplier (e.g. 2.5)" value="2.0">
+        <input type="text" id="q-score" placeholder="Current Match Score (e.g. 145/2)">
         
-        <button class="btn btn-blue" onclick="deploy()">🚀 DEPLOY (START TIMER)</button>
-        <button class="btn btn-red" onclick="clearMatch()">⏹ STOP / WAITING STATE</button>
+        <button class="btn btn-blue" onclick="deploy()">PUSH TO ARENA</button>
         
-        <h3>2. Quick Result</h3>
-        <div id="result-buttons"></div>
+        <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">
+            Note: The app shows the 3 most recent active questions.
+        </p>
+        
+        <button class="btn btn-red" onclick="clearArena()">⚠️ WIPE ALL QUESTIONS</button>
     </div>
 
     <div class="panel">
-        <h3>Smart Library (Auto-Formatted)</h3>
-        <div class="lib-grid">
-            <div class="lib-card" onclick="setQ('Next Ball Outcome?', 'Dot,1-3 Runs,4 or 6,Wicket', 2.0)">⚡ Standard Ball</div>
-            <div class="lib-card" onclick="setQ('Will it be a Wicket?', 'Yes,No', 5.0)">🧤 Wicket Special (5x)</div>
-            <div class="lib-card" onclick="setQ('Boundaries in Over?', '0,1,2,3+', 3.0)">🏏 Boundary Count</div>
-            <div class="lib-card" onclick="setQ('Toss Winner?', 'CSK,MI', 1.9)">🪙 Toss</div>
+        <h3>🎮 Live Management</h3>
+        <div id="live-list">
+            <p style="color: #64748b;">No active questions...</p>
         </div>
     </div>
 </div>
@@ -65,55 +63,69 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function setQ(q, o, m) {
-        document.getElementById('q-text').value = q;
-        document.getElementById('q-opts').value = o;
-        document.getElementById('q-mult').value = m;
-    }
-function deploy() {
-    const q = document.getElementById('q-text').value;
-    const rawOpts = document.getElementById('q-opts').value;
-    
-    // Ensure we are creating an actual Array
-    const optsArray = rawOpts.split(',').map(s => s.trim()).filter(s => s !== "");
-    const finalOpts = optsArray.slice(0, 4); // Force max 4
-
-    const mult = parseFloat(document.getElementById('q-mult').value) || 2.0;
-    const score = document.getElementById('q-score').value || "LIVE";
-
+    // 1. Deploy Logic (Push to List)
     function deploy() {
-    // ... (gathering q, opts, mult, score) ...
-    
-    // Use .push() instead of .set() to add to the list
-    db.ref("questions").push({
-        question: q,
-        options: finalOpts,
-        multiplier: mult,
-        matchScore: score,
-        timestamp: Date.now(),
-        result: null,
-        active: true
-    });
-}
+        const q = document.getElementById('q-text').value;
+        const opts = document.getElementById('q-opts').value.split(',').map(s => s.trim()).filter(s => s !== "");
+        const mult = parseFloat(document.getElementById('q-mult').value);
+        const score = document.getElementById('q-score').value;
 
-function clearAll() {
-    db.ref("questions").remove(); // Wipes all 3 questions
-}
-    
-    function updateResultButtons(opts) {
-        const container = document.getElementById('result-buttons');
-        container.innerHTML = "";
-        opts.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = "res-btn";
-            btn.innerText = opt;
-            btn.onclick = () => db.ref("currentQuestion/result").set(opt);
-            container.appendChild(btn);
+        if(!q || opts.length < 2) return alert("Fill Question and at least 2 Options!");
+
+        db.ref("questions").push({
+            question: q,
+            options: opts.slice(0,4),
+            multiplier: mult,
+            matchScore: score || "LIVE",
+            timestamp: Date.now(),
+            active: true,
+            result: null
+        }).then(() => {
+            document.getElementById('q-text').value = "";
+            document.getElementById('q-opts').value = "";
         });
     }
 
-    function clearMatch() {
-        db.ref("currentQuestion").update({ active: false });
+    // 2. Fetch Active Questions for Result Declaring
+    db.ref("questions").on("value", (snap) => {
+        const list = document.getElementById('live-list');
+        const data = snap.val();
+        list.innerHTML = "";
+
+        if(!data) {
+            list.innerHTML = "<p style='color: #64748b;'>No active questions...</p>";
+            return;
+        }
+
+        Object.keys(data).reverse().slice(0,5).forEach(id => {
+            const q = data[id];
+            const div = document.createElement('div');
+            div.className = "active-q";
+            div.innerHTML = `
+                <div style="font-weight:900; margin-bottom:8px;">${q.question}</div>
+                <div id="btns-${id}"></div>
+                ${q.result ? `<div style="color:var(--accent); font-size:0.8rem; margin-top:5px;">Result: ${q.result}</div>` : ''}
+            `;
+            list.appendChild(div);
+
+            // Add result buttons if not already decided
+            if(!q.result) {
+                const btnBox = div.querySelector(`#btns-${id}`);
+                q.options.forEach(opt => {
+                    const b = document.createElement('button');
+                    b.className = "res-btn";
+                    b.innerText = opt;
+                    b.onclick = () => db.ref("questions/" + id).update({ result: opt });
+                    btnBox.appendChild(b);
+                });
+            }
+        });
+    });
+
+    function clearArena() {
+        if(confirm("Are you sure? This will wipe the arena for all players.")) {
+            db.ref("questions").remove();
+        }
     }
 </script>
 </body>

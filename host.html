@@ -81,20 +81,25 @@ function deploy() {
     const mult = parseFloat(document.getElementById('q-mult').value) || 2.0;
     const score = document.getElementById('q-score').value || "LIVE";
 
-    db.ref("currentQuestion").set({
+    function deploy() {
+    // ... (gathering q, opts, mult, score) ...
+    
+    // Use .push() instead of .set() to add to the list
+    db.ref("questions").push({
         question: q,
         options: finalOpts,
         multiplier: mult,
         matchScore: score,
-        timestamp: Date.now(), // This triggers the "New Question" reset in Player App
+        timestamp: Date.now(),
         result: null,
         active: true
-    }).then(() => {
-        updateResultButtons(finalOpts);
-        alert("Question Deployed!");
-    }).catch(err => alert("Firebase Error: " + err.message));
+    });
 }
 
+function clearAll() {
+    db.ref("questions").remove(); // Wipes all 3 questions
+}
+    
     function updateResultButtons(opts) {
         const container = document.getElementById('result-buttons');
         container.innerHTML = "";

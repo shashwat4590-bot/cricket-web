@@ -2,53 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PredictLive Admin | Triple Management</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        :root { --accent: #38bdf8; --bg: #020617; --card: #0f172a; --gold: #fbbf24; }
-        body { background: var(--bg); color: white; font-family: 'Outfit', sans-serif; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #334155; }
-        h3 { margin-bottom: 20px; color: var(--accent); }
-        input { background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 10px; width: 100%; margin-bottom: 12px; font-size: 1rem; }
-        .btn { padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; width: 100%; margin-bottom: 10px; transition: 0.2s; }
-        .btn-blue { background: var(--accent); color: #000; }
-        .btn-gold { background: var(--gold); color: #000; }
-        .btn-red { background: #ef4444; color: white; margin-top: 20px; }
-        
-        /* Active Cards List */
-        .active-q { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--gold); }
-        .res-btn { background: var(--gold); color: black; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; margin: 4px; cursor: pointer; font-size: 0.8rem; }
+        body { background: #020617; color: white; font-family: sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #0f172a; padding: 20px; border-radius: 15px; border: 1px solid #1e293b; }
+        .bank-btn { background: #1e293b; color: white; border: 1px solid #334155; padding: 10px; border-radius: 8px; cursor: pointer; margin: 5px; font-size: 0.8rem; }
+        .bank-btn:hover { border-color: #38bdf8; }
+        input { width: 100%; padding: 10px; margin: 10px 0; background: #020617; color: white; border: 1px solid #334155; }
+        .btn-push { background: #38bdf8; color: black; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .active-card { background: #020617; padding: 15px; border-radius: 10px; margin-top: 10px; border-left: 4px solid #fbbf24; position: relative; }
+        .res-btn { background: #fbbf24; color: black; border: none; padding: 5px 10px; border-radius: 4px; margin: 5px 5px 0 0; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        .btn-del { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="panel">
-        <h3>🚀 Deploy New Card</h3>
-        <input type="text" id="q-text" placeholder="Question (e.g. Next Wicket?)">
-        <input type="text" id="q-opts" placeholder="Options (Max 4, comma separated)">
-        <input type="number" id="q-mult" placeholder="Multiplier (e.g. 2.5)" value="2.0">
-        <input type="text" id="q-score" placeholder="Current Match Score (e.g. 145/2)">
-        
-        <button class="btn btn-blue" onclick="deploy()">PUSH TO ARENA</button>
-        
-        <p style="font-size: 0.8rem; color: #64748b; margin-top: 10px;">
-            Note: The app shows the 3 most recent active questions.
-        </p>
-        
-        <button class="btn btn-red" onclick="clearArena()">⚠️ WIPE ALL QUESTIONS</button>
-    </div>
+    <div class="grid">
+        <div class="panel">
+            <h3>🏦 Question Bank</h3>
+            <div id="bank">
+                <button class="bank-btn" onclick="setQ('Toss Winner','CSK, MI', 1.9)">Toss Winner</button>
+                <button class="bank-btn" onclick="setQ('Next Ball Run','0, 1, 4, 6', 3.0)">Next Ball Run</button>
+                <button class="bank-btn" onclick="setQ('Runs in Next 5 Overs','0-30, 31-45, 46-60, 60+', 2.5)">5 Over Runs</button>
+                <button class="bank-btn" onclick="setQ('Wickets in Next 5 Overs','0, 1, 2, 3+', 4.0)">5 Over Wickets</button>
+                <button class="bank-btn" onclick="setQ('Next Over Boundary?','Yes, No', 2.0)">Boundary in Over?</button>
+                <button class="bank-btn" onclick="setQ('Next Batter Out','Batter 1, Batter 2', 2.2)">Next Out</button>
+                <button class="bank-btn" onclick="setQ('Method of Dismissal','Catch, Bowled, LBW, Other', 5.0)">Dismissal Mode</button>
+                <button class="bank-btn" onclick="setQ('Powerplay Score','0-40, 41-55, 56-70, 70+', 2.1)">Powerplay Score</button>
+                <button class="bank-btn" onclick="setQ('Total Match Sixes','0-10, 11-15, 16-20, 20+', 2.8)">Total Sixes</button>
+                <button class="bank-btn" onclick="setQ('Winner of Match','CSK, MI', 1.8)">Match Winner</button>
+            </div>
+            <hr style="opacity:0.1; margin:20px 0;">
+            <input type="text" id="q-text" placeholder="Question">
+            <input type="text" id="q-opts" placeholder="Options (comma separated)">
+            <input type="number" id="q-mult" placeholder="Multiplier" value="2.0">
+            <input type="text" id="q-score" placeholder="Score (Optional)">
+            <button class="btn-push" onclick="deploy()">DEPLOY TO ARENA</button>
+        </div>
 
-    <div class="panel">
-        <h3>🎮 Live Management</h3>
-        <div id="live-list">
-            <p style="color: #64748b;">No active questions...</p>
+        <div class="panel">
+            <h3>📡 Active Arena Questions</h3>
+            <div id="active-list"></div>
+            <button onclick="clearAll()" style="background:none; color:grey; border:none; cursor:pointer; margin-top:20px;">Wipe All Arena</button>
         </div>
     </div>
-</div>
 
 <script>
     const firebaseConfig = {
@@ -63,70 +63,57 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Deploy Logic (Push to List)
+    function setQ(q, o, m) {
+        document.getElementById('q-text').value = q;
+        document.getElementById('q-opts').value = o;
+        document.getElementById('q-mult').value = m;
+    }
+
     function deploy() {
         const q = document.getElementById('q-text').value;
-        const opts = document.getElementById('q-opts').value.split(',').map(s => s.trim()).filter(s => s !== "");
-        const mult = parseFloat(document.getElementById('q-mult').value);
-        const score = document.getElementById('q-score').value;
-
-        if(!q || opts.length < 2) return alert("Fill Question and at least 2 Options!");
+        const o = document.getElementById('q-opts').value.split(',').map(s=>s.trim());
+        const m = document.getElementById('q-mult').value;
+        const s = document.getElementById('q-score').value;
 
         db.ref("questions").push({
-            question: q,
-            options: opts.slice(0,4),
-            multiplier: mult,
-            matchScore: score || "LIVE",
-            timestamp: Date.now(),
-            active: true,
-            result: null
-        }).then(() => {
-            document.getElementById('q-text').value = "";
-            document.getElementById('q-opts').value = "";
+            question: q, options: o, multiplier: m, matchScore: s,
+            timestamp: Date.now(), active: true, result: null
         });
     }
 
-    // 2. Fetch Active Questions for Result Declaring
     db.ref("questions").on("value", (snap) => {
-        const list = document.getElementById('live-list');
+        const list = document.getElementById('active-list');
         const data = snap.val();
         list.innerHTML = "";
+        if(!data) return;
 
-        if(!data) {
-            list.innerHTML = "<p style='color: #64748b;'>No active questions...</p>";
-            return;
-        }
-
-        Object.keys(data).reverse().slice(0,5).forEach(id => {
+        Object.keys(data).forEach(id => {
             const q = data[id];
             const div = document.createElement('div');
-            div.className = "active-q";
-            div.innerHTML = `
-                <div style="font-weight:900; margin-bottom:8px;">${q.question}</div>
-                <div id="btns-${id}"></div>
-                ${q.result ? `<div style="color:var(--accent); font-size:0.8rem; margin-top:5px;">Result: ${q.result}</div>` : ''}
-            `;
-            list.appendChild(div);
-
-            // Add result buttons if not already decided
+            div.className = "active-card";
+            div.innerHTML = `<strong>${q.question}</strong><br>`;
+            
             if(!q.result) {
-                const btnBox = div.querySelector(`#btns-${id}`);
                 q.options.forEach(opt => {
                     const b = document.createElement('button');
                     b.className = "res-btn";
                     b.innerText = opt;
-                    b.onclick = () => db.ref("questions/" + id).update({ result: opt });
-                    btnBox.appendChild(b);
+                    b.onclick = () => db.ref("questions/"+id).update({result: opt});
+                    div.appendChild(b);
                 });
+            } else {
+                div.innerHTML += `<span style="color:#38bdf8">Result: ${q.result}</span>`;
             }
+
+            const del = document.createElement('button');
+            del.className = "btn-del"; del.innerText = "X";
+            del.onclick = () => db.ref("questions/"+id).remove();
+            div.appendChild(del);
+            list.appendChild(div);
         });
     });
 
-    function clearArena() {
-        if(confirm("Are you sure? This will wipe the arena for all players.")) {
-            db.ref("questions").remove();
-        }
-    }
+    function clearAll() { db.ref("questions").remove(); }
 </script>
 </body>
 </html>

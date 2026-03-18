@@ -1,0 +1,14 @@
+{
+  "name": "cashfree-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "latest",
+    "axios": "^1.6.0",
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}

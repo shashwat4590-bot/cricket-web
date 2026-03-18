@@ -9,7 +9,10 @@ const supabase = createClient(
 export default async function handler(req, res) {
   try {
     // Cashfree sends event data
-    const order_id = req.body?.data?.order?.order_id;
+    const order_id =
+  req.body?.data?.order?.order_id ||
+  req.body?.order?.order_id ||
+  req.body?.order_id;
 
     if (!order_id) {
       return res.status(400).json({ error: "No order_id" });
@@ -83,5 +86,6 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("Webhook error:", err?.response?.data || err.message);
     return res.status(500).json({ error: "Webhook failed" });
+    return res.status(200).json({ received: true });
   }
 }

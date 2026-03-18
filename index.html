@@ -179,17 +179,19 @@
     let tokens = 0;
 
     // --- CORE LOGIC ---
-    async function checkUser() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) {
-            window.location.href = "login.html";
-        } else {
-            loadBalance();
-            loadTransactions();
-            renderArena();
-        }
+   async function checkUser() {
+    console.log("Checking user session..."); // Add this line
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        console.log("No session found, redirecting to login...");
+        window.location.href = "login.html";
+    } else {
+        console.log("User logged in:", session.user.id);
+        loadBalance();
+        loadTransactions();
+        renderArena();
     }
-    checkUser();
+}
 
     async function loadBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();

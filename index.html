@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
@@ -211,39 +212,43 @@
         document.getElementById('wall-bal').innerText = tokens;
     }
 
-    async function addMoney() {
-        const amountInput = document.getElementById("buy-amt");
-        const amount = parseInt(amountInput.value);
-        
-        if(!amount || amount < 50) return alert("Minimum top-up is ₹50");
+   async function addMoney() {
+    const amountInput = document.getElementById("buy-amt");
+    const amount = parseInt(amountInput.value);
 
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        const creditAmount = amount * 2; // Elite Bonus Multiplier
-        const newBalance = tokens + creditAmount;
-
-        // FIXED: Using upsert to ensure the row exists and updates
-        const { error: walletErr } = await supabaseClient.from("wallets").upsert({ 
-            user_id: user.id, 
-            balance: newBalance 
-        }, { onConflict: 'user_id' });
-
-        if(!walletErr) {
-            await supabaseClient.from("transactions").insert([
-                { user_id: user.id, amount: creditAmount, type: 'DEPOSIT' }
-            ]);
-
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#fbbf24', '#38bdf8'] });
-            
-            tokens = newBalance;
-            updateUIBalance();
-            loadTransactions();
-            amountInput.value = "";
-            alert("Funds successfully added to your vault!");
-        } else {
-            alert("Transaction failed. Please try again.");
-            console.error(walletErr);
-        }
+    if (!amount || amount < 50) {
+        return alert("Minimum top-up is ₹50");
     }
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    // 🔥 Call your backend
+    const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user.id,
+            amount: amount
+        })
+    });
+
+    const data = await res.json();
+
+    if (!data.payment_session_id) {
+        alert("Payment init failed");
+        console.error(data);
+        return;
+    }
+
+    // 💳 Open Cashfree checkout
+    const cashfree = Cashfree({ mode: "sandbox" });
+
+    cashfree.checkout({
+        paymentSessionId: data.payment_session_id
+    });
+}
 
     async function loadTransactions() {
         const { data: { user } } = await supabaseClient.auth.getUser();

@@ -55,6 +55,9 @@ export default async function handler(req, res) {
           customer_email: "test@test.com",
           customer_phone: "9999999999",
         },
+        order_meta: {
+          notify_url:
+            "https://ipl-web-ten.vercel.app/api/webhook"
       },
       {
         headers: {

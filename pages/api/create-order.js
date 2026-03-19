@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 
     // 2️⃣ Create order in Cashfree
     const response = await axios.post(
-      "https://sandbox.cashfree.com/pg/orders",
+      "https://api.cashfree.com/pg/orders",
       {
         order_id: order_id,
         order_amount: amount,

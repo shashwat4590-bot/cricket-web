@@ -22,8 +22,7 @@
         .btn-elite { background: var(--accent); color: #020617; border: none; padding: 18px; border-radius: 16px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; }
         .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; transition: 0.3s; }
         
-        /* STATE STYLES */
-        .btn-option.selected { background: #38bdf8 !important; color: #020617 !important; border: 2px solid white !important; }
+        .btn-option.selected { background: #38bdf8 !important; color: #020617 !important; border: 2px solid white !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
         .btn-option.correct { background: #22c55e !important; color: white !important; border: 2px solid #4ade80 !important; }
         .btn-option.wrong { background: #ef4444 !important; color: white !important; border: 2px solid #f87171 !important; opacity: 0.7; }
         .btn-option:disabled { cursor: not-allowed; }
@@ -68,14 +67,18 @@
     async function checkUser() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) return window.location.href = "login.html";
-        await refreshBalance();
+        refreshBalance();
         renderArena();
     }
 
     async function refreshBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
-        if (wallet) { tokens = wallet.balance; document.getElementById('pill-bal').innerText = tokens; document.getElementById('wall-bal').innerText = tokens; }
+        if (wallet) { 
+            tokens = wallet.balance; 
+            document.getElementById('pill-bal').innerText = tokens; 
+            document.getElementById('wall-bal').innerText = tokens; 
+        }
     }
 
     function renderArena() {
@@ -87,7 +90,7 @@
                 const q = data[id];
                 const myBet = userBets[id] ? userBets[id].option : null;
                 const myAmt = userBets[id] ? userBets[id].amount : 0;
-                const winner = q.result; // SYNCED WITH HOST PANEL "result"
+                const winner = q.result; // Host Panel "result" field
 
                 list.innerHTML += `<div class="glass-card">
                     <h4 style="margin-bottom:20px;">${q.question}</h4>
@@ -109,18 +112,30 @@
     async function placeBet(qid, opt) {
         const betAmt = parseInt(document.getElementById(`s-${qid}`).value);
         if (tokens < betAmt) return alert("Insufficient Credits!");
+        
+        // INSTANT UI LOCK
+        userBets[qid] = { option: opt, amount: betAmt };
+        localStorage.setItem('userBets', JSON.stringify(userBets));
+        renderArena();
+
         const { data: { user } } = await supabaseClient.auth.getUser();
         const { error } = await supabaseClient.from("wallets").update({ balance: tokens - betAmt }).eq("user_id", user.id);
-        if (!error) { userBets[qid] = { option: opt, amount: betAmt }; localStorage.setItem('userBets', JSON.stringify(userBets)); await refreshBalance(); }
+        if (error) {
+            delete userBets[qid];
+            localStorage.setItem('userBets', JSON.stringify(userBets));
+            alert("Bet failed. Try again.");
+        }
+        refreshBalance();
     }
 
     async function payoutUser(qid, amt, mult) {
+        userBets[id + '_paid'] = true; // Prevents double loop
         const { data: { user } } = await supabaseClient.auth.getUser();
         const win = Math.floor(amt * (mult || 2));
-        userBets[qid + '_paid'] = true; localStorage.setItem('userBets', JSON.stringify(userBets));
         const { data: w } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
         await supabaseClient.from("wallets").update({ balance: (w ? w.balance : tokens) + win }).eq("user_id", user.id);
-        await refreshBalance();
+        localStorage.setItem('userBets', JSON.stringify(userBets));
+        refreshBalance();
     }
 
     async function addMoney() {

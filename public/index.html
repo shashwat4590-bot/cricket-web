@@ -247,9 +247,17 @@
     // 💳 Open Cashfree checkout
     const cashfree = Cashfree({ mode: "sandbox" });
 
-    cashfree.checkout({
-        paymentSessionId: data.payment_session_id
-    });
+    const cashfree = Cashfree({ mode: "sandbox" });
+
+cashfree.checkout({
+  paymentSessionId: data.payment_session_id,
+  redirectTarget: "_self"
+});
+
+// ⏳ wait for user to come back then refresh
+setTimeout(() => {
+    refreshBalance();
+}, 5000);
 }
 
     async function loadTransactions() {
@@ -297,6 +305,10 @@
         await supabaseClient.auth.signOut();
         window.location.href = "login.html";
     }
+    async function refreshBalance() {
+    await loadBalance();
+    await loadTransactions();
+}
 </script>
 </body>
 </html>

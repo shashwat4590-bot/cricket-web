@@ -22,7 +22,6 @@ export default async function handler(req, res) {
     if (!order_id) {
       console.log("No order_id found");
       return res.status(200).json({ ok: true });
-      console.log("Updating wallet:", order.user_id, newBalance);
     }
 
     // 🔍 Verify payment

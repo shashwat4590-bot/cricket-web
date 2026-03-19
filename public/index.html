@@ -20,18 +20,20 @@
         .token-pill { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1.5px solid var(--gold); padding: 8px 18px; border-radius: 50px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 8px; cursor: pointer; }
         
         .container { padding: 100px 20px 130px; max-width: 460px; margin: 0 auto; }
-        .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); position: relative; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
         .page { display: none; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
 
         .btn-elite { background: var(--accent); color: #020617; border: none; padding: 18px; border-radius: 16px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; }
         
-        .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; transition: 0.3s; }
-        .btn-option.selected { background: var(--accent) !important; color: #020617 !important; border-color: white; pointer-events: none; }
-        .btn-option.correct { background: #22c55e !important; color: white !important; border-color: #4ade80; }
-        .btn-option.wrong { background: #ef4444 !important; color: white !important; border-color: #f87171; }
-        .btn-option:disabled { opacity: 0.6; cursor: not-allowed; }
-
+        .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; transition: 0.2s; }
+        
+        /* THE COLORS YOU ASKED FOR */
+        .btn-option.selected { background: #38bdf8 !important; color: #020617 !important; border: 2px solid white !important; font-weight: 800; }
+        .btn-option.correct { background: #22c55e !important; color: white !important; border: 2px solid #4ade80 !important; }
+        .btn-option.wrong { background: #ef4444 !important; color: white !important; border: 2px solid #f87171 !important; opacity: 0.9; }
+        
+        .btn-option:disabled { cursor: not-allowed; }
         .slider-box { margin-top: 22px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 18px; border: 1px solid var(--border); }
         input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
@@ -67,7 +69,6 @@
                 <input id="buy-amt" type="number" placeholder="₹ Amount" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); padding:18px; border-radius:16px; color:white; text-align:center; outline:none;">
                 <button class="btn-elite" style="background: var(--gold); color: #000; margin-top:15px;" onclick="addMoney()">Add to Wallet</button>
             </div>
-            <div id="transactions"></div>
         </div>
     </div>
 
@@ -83,6 +84,7 @@
     const db = firebase.database();
     
     let tokens = 0;
+    let isProcessing = false;
     let userBets = JSON.parse(localStorage.getItem('userBets') || '{}');
 
     window.onload = checkUser;
@@ -90,7 +92,7 @@
     async function checkUser() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) return window.location.href = "login.html";
-        refreshBalance();
+        await refreshBalance();
         renderArena();
     }
 
@@ -114,27 +116,27 @@
             Object.keys(data).reverse().forEach(id => {
                 const q = data[id];
                 const myBetData = userBets[id];
-                const myBetOption = myBetData ? myBetData.option : null;
-                const myBetAmount = myBetData ? myBetData.amount : 0;
+                const myChoice = myBetData ? myBetData.option : null;
+                const myAmt = myBetData ? myBetData.amount : 0;
                 const winner = q.winner;
 
                 list.innerHTML += `
                     <div class="glass-card">
                         <h4 style="margin-bottom:20px;">${q.question}</h4>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
                             ${q.options.map(o => {
-                                let stateClass = "";
-                                if (myBetOption === o) stateClass = "selected";
+                                let cls = "";
+                                if (myChoice === o) cls = "selected";
                                 if (winner) {
-                                    if (o === winner) stateClass = "correct";
-                                    else if (myBetOption === o) stateClass = "wrong";
+                                    if (o === winner) cls = "correct";
+                                    else if (myChoice === o) cls = "wrong";
                                 }
-                                return `<button class="btn-option ${stateClass}" 
-                                        ${myBetOption || winner ? 'disabled' : ''} 
+                                return `<button class="btn-option ${cls}" 
+                                        ${myChoice || winner ? 'disabled' : ''} 
                                         onclick="placeBet('${id}', '${o}')">${o}</button>`;
                             }).join('')}
                         </div>
-                        ${!myBetOption && !winner ? `
+                        ${!myChoice && !winner ? `
                         <div class="slider-box">
                             <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:10px;">
                                 <span>BET AMOUNT</span>
@@ -144,55 +146,58 @@
                         </div>` : ''}
                     </div>`;
 
-                // Payout logic
-                if (winner && myBetOption === winner && !userBets[id + '_paid']) {
-                    payoutUser(id, myBetAmount);
+                if (winner && myChoice === winner && !userBets[id + '_paid']) {
+                    payoutUser(id, myAmt);
                 }
             });
         });
     }
 
     async function placeBet(qid, opt) {
+        if (isProcessing) return;
         const betAmt = parseInt(document.getElementById(`s-${qid}`).value);
         if (tokens < betAmt) return alert("Insufficient Credits!");
 
+        isProcessing = true;
         const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        // Update Supabase
         const { error } = await supabaseClient.from("wallets").update({ balance: tokens - betAmt }).eq("user_id", user.id);
         
         if (!error) {
             userBets[qid] = { option: opt, amount: betAmt };
             localStorage.setItem('userBets', JSON.stringify(userBets));
-            refreshBalance();
+            await refreshBalance();
+            renderArena();
         }
+        isProcessing = false;
     }
 
     async function payoutUser(qid, betAmount) {
         const { data: { user } } = await supabaseClient.auth.getUser();
         const winAmount = betAmount * 2;
         
-        // Fetch fresh balance from Supabase
+        // Fetch fresh balance to prevent overwrite errors
         const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
-        const currentBal = wallet ? wallet.balance : tokens;
-        const newTotal = currentBal + winAmount;
+        const freshBal = wallet ? wallet.balance : tokens;
+        const newTotal = freshBal + winAmount;
 
         const { error } = await supabaseClient.from("wallets").update({ balance: newTotal }).eq("user_id", user.id);
         
         if (!error) {
             userBets[qid + '_paid'] = true;
             localStorage.setItem('userBets', JSON.stringify(userBets));
-            refreshBalance();
+            await refreshBalance();
         }
     }
 
     async function addMoney() {
-        const amtInput = document.getElementById("buy-amt");
-        const amt = parseInt(amtInput.value);
+        const amt = parseInt(document.getElementById("buy-amt").value);
         if (!amt || amt < 50) return alert("Min ₹50");
         const { data: { user } } = await supabaseClient.auth.getUser();
         try {
             const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user_id: user.id, amount: amt })
             });
             const data = await res.json();
@@ -200,7 +205,7 @@
                 const cf = Cashfree({ mode: "sandbox" });
                 cf.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
             }
-        } catch (e) { alert("Error connecting to payment API."); }
+        } catch (e) { alert("API Error"); }
     }
 
     function nav(id) {

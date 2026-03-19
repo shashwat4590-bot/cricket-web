@@ -115,7 +115,7 @@
 
     async function addMoney() {
         const amt = parseInt(document.getElementById("buy-amt").value);
-        if (!amt || amt < 50) return alert("Min ₹50");
+        if (!amt || amt < 10) return alert("Min ₹10");
         const { data: { user } } = await supabaseClient.auth.getUser();
         const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: user.id, amount: amt }) });
         const d = await res.json();

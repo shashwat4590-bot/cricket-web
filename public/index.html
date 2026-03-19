@@ -183,14 +183,24 @@
     }
 
     async function refreshBalance() {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        
-        // Fetch Wallet
-        const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
-        if (wallet) {
-            tokens = wallet.balance;
-            updateUI();
-        }
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    // Fetch the most recently created wallet row for this user
+    const { data: wallet, error } = await supabaseClient
+        .from("wallets")
+        .select("balance")
+        .eq("user_id", user.id)
+        .order('created_at', { ascending: false }) // Get the latest one
+        .limit(1)
+        .maybeSingle();
+
+    if (wallet) {
+        tokens = wallet.balance;
+        updateUI();
+    }
+    
+    // ... rest of your history code ...
+}
 
         // Fetch History
         const { data: txns } = await supabaseClient.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false });

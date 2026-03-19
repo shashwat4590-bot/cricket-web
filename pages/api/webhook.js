@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
     // 🔍 Verify payment from Cashfree
     const verify = await axios.get(
-      `https://sandbox.cashfree.com/pg/orders/${order_id}`,
+      `https://api.cashfree.com/pg/orders/${order_id}`,
       {
         headers: {
           "x-client-id": process.env.CASHFREE_APP_ID,

@@ -21,6 +21,7 @@
             --gold: #fbbf24;
             --surface: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(15, 23, 42, 0.7);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -30,131 +31,146 @@
             min-height: 100vh; 
             background-image: radial-gradient(circle at top right, #1e293b, #020617);
             background-attachment: fixed;
+            overflow-x: hidden;
         }
 
-        /* --- ELITE GLASSMORPHISM --- */
+        /* --- UI COMPONENTS --- */
         .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
+            background: var(--glass);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        /* --- HEADER --- */
         .header-bar {
-            position: fixed; top: 0; width: 100%; height: 70px;
+            position: fixed; top: 0; width: 100%; height: 75px;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; background: rgba(2, 6, 23, 0.8);
-            backdrop-filter: blur(15px); z-index: 2000;
+            padding: 0 24px; background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(20px); z-index: 2000;
             border-bottom: 1px solid var(--border);
         }
+
         .token-pill {
             background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 1px solid var(--gold);
-            padding: 8px 16px; border-radius: 50px; 
+            border: 1.5px solid var(--gold);
+            padding: 8px 18px; border-radius: 50px; 
             font-weight: 800; color: var(--gold);
             display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
         }
 
-        .container { padding: 90px 20px 120px; max-width: 450px; margin: 0 auto; }
-        .page { display: none; width: 100%; animation: fadeIn 0.4s ease-out; }
+        /* --- ARENA SPECIFIC --- */
+        .bet-control {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .slider-label {
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; font-weight: 700; color: var(--accent);
+            margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        input[type=range] {
+            width: 100%; height: 6px; border-radius: 5px;
+            background: var(--border); outline: none; -webkit-appearance: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px;
+            background: var(--accent); border-radius: 50%; cursor: pointer;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .live-tag {
+            background: #ef4444; color: white; font-size: 0.6rem;
+            padding: 2px 8px; border-radius: 4px; font-weight: 900;
+            position: absolute; top: 24px; right: 24px;
+        }
+
+        /* --- LAYOUT --- */
+        .container { padding: 100px 20px 130px; max-width: 480px; margin: 0 auto; }
+        .page { display: none; animation: slideUp 0.4s ease-out; }
         .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- INPUTS & BUTTONS --- */
-        .input-group {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 12px;
-            margin: 15px 0;
-        }
-        input {
-            width: 100%; background: transparent; border: none; 
-            color: white; font-size: 1.2rem; text-align: center; outline: none;
-            font-weight: 600;
-        }
-        
         .btn-elite {
             background: var(--accent); color: #020617;
-            border: none; padding: 18px; border-radius: 16px;
+            border: none; padding: 16px; border-radius: 16px;
             font-weight: 800; width: 100%; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            transition: all 0.2s; text-transform: uppercase;
         }
-        .btn-elite:active { transform: scale(0.98); }
+        .btn-elite:active { transform: scale(0.96); opacity: 0.9; }
 
-        /* --- NAV --- */
         .nav-bar { 
-            position: fixed; bottom: 20px; left: 50%; 
+            position: fixed; bottom: 25px; left: 50%; 
             transform: translateX(-50%); width: 90%; max-width: 400px;
-            background: rgba(15, 23, 42, 0.9); 
-            backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around; padding: 15px; 
-            border-radius: 25px; border: 1px solid var(--border); z-index: 1000; 
+            background: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(24px);
+            display: flex; justify-content: space-around; padding: 18px; 
+            border-radius: 30px; border: 1px solid var(--border); z-index: 1000;
         }
-        .nav-link { color: #64748b; font-weight: 700; font-size: 0.7rem; cursor: pointer; text-align: center; }
-        .nav-link.active { color: var(--accent); }
-
-        .txn-item {
-            background: var(--surface);
-            padding: 12px 18px; border-radius: 14px;
-            margin-bottom: 8px; display: flex; justify-content: space-between;
-            border-left: 4px solid var(--accent);
-        }
+        .nav-link { color: #64748b; font-weight: 800; font-size: 0.75rem; cursor: pointer; border: none; background: none; }
+        .nav-link.active { color: var(--accent); text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
     </style>
 </head>
 <body>
 
     <header class="header-bar">
-        <div style="font-weight:800; font-size:1.2rem; letter-spacing: -0.5px;">PREDICT<span style="color:var(--accent)">LIVE</span></div>
+        <div style="font-weight:900; font-size:1.3rem; letter-spacing: -1px;">PREDICT<span style="color:var(--accent)">LIVE</span></div>
         <div class="token-pill">
-            <span style="font-size: 0.7rem; opacity: 0.8;">BAL</span>
+            <span style="font-size: 0.65rem; opacity: 0.7;">CREDITS</span>
             <span id="pill-bal">0</span>
         </div>
     </header>
 
     <div class="container">
         <div id="home" class="page active">
-            <div class="glass-card" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border:none; margin-bottom:20px;">
-                <p style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; opacity: 0.9;">Featured Match</p>
-                <h2 style="font-size: 2rem; margin: 10px 0;">CSK vs MI</h2>
-                <button class="btn-elite" style="background:white; color:#6366f1;" onclick="nav('arena')">Join Arena</button>
+            <div class="glass-card" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border:none;">
+                <p style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; opacity: 0.8;">Live Feature</p>
+                <h2 style="font-size: 2.2rem; margin: 8px 0 20px;">IPL: CSK vs MI</h2>
+                <button class="btn-elite" style="background:white; color:#1e293b;" onclick="nav('arena')">Enter Stadium</button>
             </div>
-            <div class="glass-card" style="text-align: center;">
-                <button class="nav-link" style="width:100%; background:none; border:none;" onclick="logout()">Sign Out of Account</button>
+            
+            <div class="glass-card" style="text-align: center; padding: 20px;">
+                <button class="nav-link" style="color:#ef4444; font-size: 0.8rem;" onclick="logout()">Secure Logout</button>
             </div>
         </div>
 
         <div id="arena" class="page">
-            <h3 style="margin-bottom: 20px;">Active Predictions</h3>
+            <h3 style="margin-bottom: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                <span style="width:8px; height:8px; background:#ef4444; border-radius:50%;"></span>
+                STADIUM LIVE
+            </h3>
             <div id="questions-list"></div>
         </div>
 
         <div id="wallet" class="page">
-            <div class="glass-card" style="text-align:center; padding: 40px 24px;">
-                <p style="color: #94a3b8; font-size: 0.8rem; font-weight: 600;">AVAILABLE CREDITS</p>
-                <h1 id="wall-bal" style="font-size:3.5rem; color:var(--gold); margin: 10px 0;">0</h1>
+            <div class="glass-card" style="text-align:center; padding: 45px 24px;">
+                <p style="color: #94a3b8; font-size: 0.75rem; font-weight: 800; letter-spacing: 1px;">TOTAL ASSETS</p>
+                <h1 id="wall-bal" style="font-size:4rem; color:var(--gold); margin: 10px 0; font-weight: 900;">0</h1>
                 
-                <div class="input-group">
-                    <input id="buy-amt" type="number" placeholder="Enter Amount (₹)">
+                <div style="background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px; margin: 25px 0;">
+                    <input id="buy-amt" type="number" placeholder="Enter Amount (₹)" style="width:100%; background:transparent; border:none; color:white; text-align:center; font-size:1.5rem; font-weight:800; outline:none;">
                 </div>
-                <button class="btn-elite" style="background: var(--gold);" onclick="addMoney()">Top Up Wallet</button>
+                <button class="btn-elite" style="background: var(--gold); color: #000;" onclick="addMoney()">Top Up Wallet</button>
             </div>
 
-            <h4 style="margin: 25px 0 15px; font-size: 0.9rem; color: #94a3b8;">TRANSACTION HISTORY</h4>
+            <h4 style="margin: 30px 0 15px; font-size: 0.8rem; font-weight: 800; color: #64748b;">LATEST ACTIVITY</h4>
             <div id="transactions"></div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-link active" id="n-home" onclick="nav('home')">HOME</div>
-        <div class="nav-link" id="n-arena" onclick="nav('arena')">ARENA</div>
-        <div class="nav-link" id="n-wallet" onclick="nav('wallet')">WALLET</div>
+        <button class="nav-link active" id="n-home" onclick="nav('home')">HOME</button>
+        <button class="nav-link" id="n-arena" onclick="nav('arena')">ARENA</button>
+        <button class="nav-link" id="n-wallet" onclick="nav('wallet')">WALLET</button>
     </nav>
 
 <script>
@@ -178,34 +194,32 @@
 
     let tokens = 0;
 
-    // --- CORE LOGIC ---
-   async function checkUser() {
-    console.log("Checking user session..."); // Add this line
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) {
-        console.log("No session found, redirecting to login...");
-        window.location.href = "login.html";
-    } else {
-        console.log("User logged in:", session.user.id);
-        loadBalance();
-        loadTransactions();
-        renderArena();
+    // --- CORE INITIALIZATION ---
+    window.onload = () => {
+        checkUser();
+    };
+
+    async function checkUser() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = "login.html";
+        } else {
+            loadBalance();
+            loadTransactions();
+            renderArena();
+        }
     }
-}
 
     async function loadBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        // Use .maybeSingle() to avoid errors if no wallet exists yet
-        const { data, error } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
+        const { data } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
         
         if (data) {
             tokens = data.balance;
         } else {
             tokens = 0;
-            // Create initial wallet if it doesn't exist
             await supabaseClient.from("wallets").insert([{ user_id: user.id, balance: 0 }]);
         }
-        
         updateUIBalance();
     }
 
@@ -214,64 +228,29 @@
         document.getElementById('wall-bal').innerText = tokens;
     }
 
-   async function addMoney() {
-    const amountInput = document.getElementById("buy-amt");
-    const amount = parseInt(amountInput.value);
+    async function addMoney() {
+        const amount = parseInt(document.getElementById("buy-amt").value);
+        if (!amount || amount < 50) return alert("Minimum top-up is ₹50");
 
-    if (!amount || amount < 50) {
-        return alert("Minimum top-up is ₹50");
-    }
-
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    // 🔥 Call your backend
-    const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            user_id: user.id,
-            amount: amount
-        })
-    });
-
-    const data = await res.json();
-
-    if (!data.payment_session_id) {
-        alert("Payment init failed");
-        console.error(data);
-        return;
-    }
-
-    // 💳 Open Cashfree checkout
-    const cashfree = Cashfree({ mode: "sandbox" });
-
-    const cashfree = Cashfree({ mode: "sandbox" });
-
-cashfree.checkout({
-  paymentSessionId: data.payment_session_id,
-  redirectTarget: "_self"
-});
-
-// ⏳ wait for user to come back then refresh
-setTimeout(() => {
-    refreshBalance();
-}, 5000);
-}
-
-    async function loadTransactions() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        const { data } = await supabaseClient.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-        
-        let html = "";
-        data?.forEach(t => {
-            html += `<div class="txn-item">
-                <span style="font-weight:600; font-size:0.8rem;">${t.type}</span>
-                <span style="color:var(--gold); font-weight:800;">+${t.amount} CR</span>
-            </div>`;
-        });
-        document.getElementById("transactions").innerHTML = html || "<p style='text-align:center; color:grey; font-size:0.8rem;'>No history found</p>";
+
+        try {
+            const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: user.id, amount: amount })
+            });
+
+            const data = await res.json();
+            if (!data.payment_session_id) throw new Error("API Failure");
+
+            const cashfree = Cashfree({ mode: "sandbox" });
+            cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
+
+            setTimeout(refreshBalance, 5000);
+        } catch (e) {
+            alert("Payment gateway error. Please try again.");
+        }
     }
 
     function renderArena() {
@@ -284,14 +263,38 @@ setTimeout(() => {
             Object.keys(data).reverse().forEach(id => {
                 const q = data[id];
                 list.innerHTML += `
-                    <div class="glass-card" style="margin-bottom: 15px;">
-                        <h4 style="margin-bottom:15px; line-height:1.4;">${q.question}</h4>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                            ${q.options.map(o => `<button class="btn-elite" style="background:var(--surface); color:white; border:1px solid var(--border); font-size:0.8rem; padding:12px;">${o}</button>`).join('')}
+                    <div class="glass-card">
+                        <span class="live-tag">LIVE</span>
+                        <h4 style="margin-bottom:20px; padding-right: 40px; line-height:1.5; font-size:1.1rem;">${q.question}</h4>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            ${q.options.map(o => `
+                                <button class="btn-elite" 
+                                    style="background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); font-size:0.85rem;"
+                                    onclick="placeBet('${id}', '${o}')">
+                                    ${o}
+                                </button>`).join('')}
+                        </div>
+
+                        <div class="bet-control">
+                            <div class="slider-label">
+                                <span>Wager Amount</span>
+                                <span style="color:var(--gold)">₹<span id="val-${id}">10</span></span>
+                            </div>
+                            <input type="range" min="10" max="50" value="10" step="5" 
+                                oninput="document.getElementById('val-${id}').innerText = this.value" id="bet-${id}">
                         </div>
                     </div>`;
             });
         });
+    }
+
+    async function placeBet(qId, option) {
+        const amount = document.getElementById(`bet-${qId}`).value;
+        if (tokens < amount) return alert("Insufficient balance!");
+        
+        // Add your Supabase betting logic here
+        alert(`Prediction Locked: ₹${amount} on ${option}`);
     }
 
     function nav(id) {
@@ -305,10 +308,25 @@ setTimeout(() => {
         await supabaseClient.auth.signOut();
         window.location.href = "login.html";
     }
+
     async function refreshBalance() {
-    await loadBalance();
-    await loadTransactions();
-}
+        await loadBalance();
+        loadTransactions();
+    }
+
+    async function loadTransactions() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data } = await supabaseClient.from("transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+        
+        let html = "";
+        data?.forEach(t => {
+            html += `<div style="background:var(--surface); padding:15px; border-radius:16px; margin-bottom:10px; display:flex; justify-content:space-between; border-left:4px solid var(--accent);">
+                <span style="font-weight:700; font-size:0.8rem;">${t.type.toUpperCase()}</span>
+                <span style="color:var(--gold); font-weight:900;">+${t.amount} CR</span>
+            </div>`;
+        });
+        document.getElementById("transactions").innerHTML = html || "<p style='text-align:center; color:grey; font-size:0.8rem; margin-top:20px;'>No Recent Transactions</p>";
+    }
 </script>
 </body>
 </html>

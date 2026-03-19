@@ -23,11 +23,16 @@
         .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative; }
         .page { display: none; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .btn-elite { background: var(--accent); color: #020617; border: none; padding: 18px; border-radius: 16px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; }
-        .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; }
         
+        /* Interactive Option States */
+        .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; transition: 0.3s; }
+        .btn-option.selected { background: var(--accent) !important; color: #020617 !important; border-color: white; pointer-events: none; }
+        .btn-option.correct { background: #22c55e !important; color: white !important; border-color: #4ade80; }
+        .btn-option.wrong { background: #ef4444 !important; color: white !important; border-color: #f87171; }
+        .btn-option:disabled { opacity: 0.6; cursor: not-allowed; }
+
         .slider-box { margin-top: 22px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 18px; border: 1px solid var(--border); }
         input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
 
@@ -49,10 +54,7 @@
         <div id="home" class="page active">
             <div class="glass-card" style="background: linear-gradient(135deg, #38bdf8, #6366f1); border:none; padding: 35px 26px;">
                 <h2 style="font-size: 2.2rem; margin-bottom: 20px;">CSK vs MI</h2>
-                <button class="btn-elite" style="background:white; color:#1e293b;" onclick="nav('arena')">Join Stadium</button>
-            </div>
-            <div class="glass-card" style="text-align: center; padding: 20px;">
-                <button class="nav-link" style="color:#ef4444; font-size: 0.8rem;" onclick="logout()">Secure Sign Out</button>
+                <button class="btn-elite" onclick="nav('arena')">Join Stadium</button>
             </div>
         </div>
 
@@ -65,10 +67,9 @@
             <div class="glass-card" style="text-align:center;">
                 <p style="color: #94a3b8; font-size: 0.75rem; font-weight: 800;">TOTAL CREDITS</p>
                 <h1 id="wall-bal" style="font-size:4.2rem; color:var(--gold); margin: 10px 0; font-weight: 900;">0</h1>
-                <input id="buy-amt" type="number" placeholder="₹ Amount" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); padding:18px; border-radius:16px; color:white; text-align:center; font-size:1.2rem; margin-bottom:15px; outline:none;">
-                <button class="btn-elite" style="background: var(--gold); color: #000;" onclick="addMoney()">Add to Wallet</button>
+                <input id="buy-amt" type="number" placeholder="₹ Amount" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); padding:18px; border-radius:16px; color:white; text-align:center; outline:none;">
+                <button class="btn-elite" style="background: var(--gold); color: #000; margin-top:15px;" onclick="addMoney()">Add to Wallet</button>
             </div>
-            <h4 style="margin: 20px 0; font-size: 0.8rem; font-weight: 800; color: #64748b;">HISTORY</h4>
             <div id="transactions"></div>
         </div>
     </div>
@@ -84,6 +85,7 @@
     firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();
     let tokens = 0;
+    let userBets = JSON.parse(localStorage.getItem('userBets') || '{}');
 
     window.onload = checkUser;
 
@@ -96,57 +98,11 @@
 
     async function refreshBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        
-        // Fetch Balance - using .order to ensure we get the absolute latest row
-        const { data: wallet } = await supabaseClient
-            .from("wallets")
-            .select("balance")
-            .eq("user_id", user.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
+        const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
         if (wallet) {
             tokens = wallet.balance;
             document.getElementById('pill-bal').innerText = tokens;
             document.getElementById('wall-bal').innerText = tokens;
-        }
-
-        // Fetch History
-        const { data: txns } = await supabaseClient
-            .from("transactions")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false });
-
-        let html = "";
-        txns?.forEach(t => {
-            html += `<div style="background:var(--surface); padding:14px; border-radius:14px; margin-bottom:10px; display:flex; justify-content:space-between; border-left:4px solid var(--gold);">
-                <span style="font-weight:700;">${t.type.toUpperCase()}</span>
-                <span style="color:var(--gold); font-weight:900;">+${t.amount}</span>
-            </div>`;
-        });
-        document.getElementById("transactions").innerHTML = html || "No activity";
-    }
-
-    async function addMoney() {
-        const amt = document.getElementById("buy-amt").value;
-        if (!amt || amt < 50) return alert("Minimum deposit is ₹50");
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        
-        try {
-            const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: user.id, amount: parseInt(amt) })
-            });
-            const data = await res.json();
-            if (data.payment_session_id) {
-                const cf = Cashfree({ mode: "sandbox" });
-                cf.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
-            }
-        } catch (e) {
-            alert("Error connecting to payment gateway.");
         }
     }
 
@@ -158,28 +114,67 @@
             list.innerHTML = "";
             Object.keys(data).reverse().forEach(id => {
                 const q = data[id];
+                const lockedOption = userBets[id];
+                const winner = q.winner; // Host sets this in Firebase
+
                 list.innerHTML += `
-                    <div class="glass-card">
-                        <h4 style="margin-bottom:20px; font-weight:700;">${q.question}</h4>
+                    <div class="glass-card" id="card-${id}">
+                        <h4 style="margin-bottom:20px;">${q.question}</h4>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            ${q.options.map(o => `<button class="btn-option" onclick="placeBet('${id}', '${o}')">${o}</button>`).join('')}
+                            ${q.options.map(o => {
+                                let stateClass = "";
+                                if (lockedOption === o) stateClass = "selected";
+                                if (winner) {
+                                    if (o === winner) stateClass = "correct";
+                                    else if (lockedOption === o) stateClass = "wrong";
+                                }
+                                return `<button class="btn-option ${stateClass}" 
+                                        ${lockedOption || winner ? 'disabled' : ''} 
+                                        onclick="placeBet('${id}', '${o}')">${o}</button>`;
+                            }).join('')}
                         </div>
+                        ${!lockedOption && !winner ? `
                         <div class="slider-box">
                             <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:10px;">
                                 <span>BET AMOUNT</span>
                                 <span style="color:var(--gold);">₹<span id="v-${id}">10</span></span>
                             </div>
                             <input type="range" min="10" max="50" value="10" step="5" oninput="document.getElementById('v-${id}').innerText=this.value" id="s-${id}">
-                        </div>
+                        </div>` : ''}
                     </div>`;
+                
+                // If a winner is announced and you won, update balance once
+                if (winner && lockedOption === winner && !userBets[id + '_paid']) {
+                    payoutUser(id, q.betAmt || 10);
+                }
             });
         });
     }
 
     async function placeBet(qid, opt) {
-        const betAmt = document.getElementById(`s-${qid}`).value;
+        const betAmt = parseInt(document.getElementById(`s-${qid}`).value);
         if (tokens < betAmt) return alert("Insufficient Credits!");
-        alert(`Prediction: ₹${betAmt} on ${opt}`);
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        // 1. Charge the user in Supabase
+        const { error } = await supabaseClient.from("wallets").update({ balance: tokens - betAmt }).eq("user_id", user.id);
+        
+        if (!error) {
+            userBets[qid] = opt;
+            localStorage.setItem('userBets', JSON.stringify(userBets));
+            refreshBalance();
+            renderArena();
+        }
+    }
+
+    async function payoutUser(qid, originalBet) {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const winAmt = originalBet * 2;
+        await supabaseClient.from("wallets").update({ balance: tokens + winAmt }).eq("user_id", user.id);
+        userBets[qid + '_paid'] = true;
+        localStorage.setItem('userBets', JSON.stringify(userBets));
+        refreshBalance();
     }
 
     function nav(id) {

@@ -11,8 +11,7 @@ export default async function handler(req, res) {
     console.log("Webhook hit");
 
     const body = req.body;
-
-    console.log("Webhook body:", body);
+    console.log("Webhook body:", JSON.stringify(body));
 
     const order_id =
       body?.data?.order?.order_id ||
@@ -20,11 +19,13 @@ export default async function handler(req, res) {
       body?.order_id;
 
     if (!order_id) {
-      console.log("No order_id found");
+      console.log("❌ No order_id found");
       return res.status(200).json({ ok: true });
     }
 
-    // 🔍 Verify payment
+    console.log("Order ID:", order_id);
+
+    // 🔍 Verify payment from Cashfree
     const verify = await axios.get(
       `https://sandbox.cashfree.com/pg/orders/${order_id}`,
       {
@@ -36,44 +37,59 @@ export default async function handler(req, res) {
       }
     );
 
-    if (verify.data.order_status === "PAID") {
+    console.log("Cashfree status:", verify.data.order_status);
 
-      const { data: order } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("order_id", order_id)
-        .single();
+    if (verify.data.order_status !== "PAID") {
+      console.log("❌ Not paid");
+      return res.status(200).json({ ok: true });
+    }
 
-      if (!order) {
-        return res.status(200).json({ ok: true });
-      }
+    // 📦 Get order from DB
+    const { data: order, error: orderErr } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("order_id", order_id)
+      .single();
 
-     // 💰 Get current balance safely
-const { data: wallet } = await supabase
-  .from("wallets")
-  .select("balance")
-  .eq("user_id", order.user_id)
-  .maybeSingle();
+    if (orderErr || !order) {
+      console.log("❌ Order not found:", orderErr);
+      return res.status(200).json({ ok: true });
+    }
 
-// if wallet doesn't exist → start from 0
-const currentBalance = wallet?.balance || 0;
+    console.log("Order found:", order);
 
-const newBalance = currentBalance + order.amount;
+    // 💰 Get wallet (safe)
+    const { data: wallet, error: walletErr } = await supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", order.user_id)
+      .maybeSingle();
 
-// ✅ Upsert (create OR update)
-await supabase.from("wallets").upsert({
-  user_id: order.user_id,
-  balance: newBalance
-});
+    if (walletErr) {
+      console.log("Wallet fetch error:", walletErr);
+    }
 
-      const newBalance = (wallet?.balance || 0) + order.amount;
+    const currentBalance = wallet?.balance || 0;
+    const newBalance = currentBalance + Number(order.amount);
 
-      await supabase.from("wallets").upsert({
+    console.log("Updating wallet:", currentBalance, "→", newBalance);
+
+    // ✅ Upsert wallet
+    const { error: upsertErr } = await supabase
+      .from("wallets")
+      .upsert({
         user_id: order.user_id,
         balance: newBalance
       });
 
-      await supabase.from("transactions").insert([
+    if (upsertErr) {
+      console.log("❌ Wallet update failed:", upsertErr);
+    }
+
+    // 📜 Insert transaction
+    const { error: txnErr } = await supabase
+      .from("transactions")
+      .insert([
         {
           user_id: order.user_id,
           amount: order.amount,
@@ -81,16 +97,26 @@ await supabase.from("wallets").upsert({
         }
       ]);
 
-      await supabase
-        .from("orders")
-        .update({ status: "paid" })
-        .eq("order_id", order_id);
+    if (txnErr) {
+      console.log("❌ Transaction error:", txnErr);
     }
+
+    // ✅ Mark order as paid
+    const { error: updateErr } = await supabase
+      .from("orders")
+      .update({ status: "paid" })
+      .eq("order_id", order_id);
+
+    if (updateErr) {
+      console.log("❌ Order update error:", updateErr);
+    }
+
+    console.log("✅ Webhook completed successfully");
 
     return res.status(200).json({ success: true });
 
   } catch (err) {
-    console.error("Webhook error:", err);
+    console.error("🔥 Webhook crash:", err);
     return res.status(200).json({ ok: true });
   }
 }

@@ -44,31 +44,30 @@ export default async function handler(req, res) {
     }
 
     // 2️⃣ Create order in Cashfree
-    const response = await axios.post(
-      "https://api.cashfree.com/pg/orders",
-      {
-        order_id: order_id,
-        order_amount: amount,
-        order_currency: "INR",
-        customer_details: {
-          customer_id: user_id,
-          customer_email: "test@test.com",
-          customer_phone: "9999999999",
-        },
-        order_meta: {
-          notify_url:
-            "https://ipl-web-ten.vercel.app/api/webhook"
-      },
-      {
-        headers: {
-          "x-client-id": process.env.CASHFREE_APP_ID,
-          "x-client-secret": process.env.CASHFREE_SECRET,
-          "x-api-version": "2022-09-01",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+const response = await axios.post(
+  "https://api.cashfree.com/pg/orders",
+  {
+    order_id: order_id,
+    order_amount: amount,
+    order_currency: "INR",
+    customer_details: {
+      customer_id: user_id,
+      customer_email: "test@test.com",
+      customer_phone: "9999999999"
+    },
+    order_meta: {
+      notify_url: "https://ipl-web-ten.vercel.app/api/webhook"
+    }
+  },
+  {
+    headers: {
+      "x-client-id": process.env.CASHFREE_APP_ID,
+      "x-client-secret": process.env.CASHFREE_SECRET,
+      "x-api-version": "2022-09-01",
+      "Content-Type": "application/json"
+    }
+  }
+);
     // 3️⃣ Return session ID to frontend
     return res.status(200).json({
       success: true,

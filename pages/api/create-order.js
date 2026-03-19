@@ -24,6 +24,9 @@ export default async function handler(req, res) {
     if (amount <= 0) {
       return res.status(400).json({ error: "Invalid amount" });
     }
+    if (amount < 10) {
+      return res.status(400).json({ error: "Minimum amount is ₹10" });
+    }
 
     // Create unique order ID
     const order_id = "order_" + Date.now();

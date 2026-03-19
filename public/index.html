@@ -23,10 +23,11 @@
         .glass-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative; }
         .page { display: none; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .btn-elite { background: var(--accent); color: #020617; border: none; padding: 18px; border-radius: 16px; font-weight: 800; width: 100%; cursor: pointer; text-transform: uppercase; }
         
-        /* Interactive Option States */
+        /* Interactive States */
         .btn-option { background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--border); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 8px; transition: 0.3s; }
         .btn-option.selected { background: var(--accent) !important; color: #020617 !important; border-color: white; pointer-events: none; }
         .btn-option.correct { background: #22c55e !important; color: white !important; border-color: #4ade80; }
@@ -82,13 +83,9 @@
 
 <script>
     const supabaseClient = supabase.createClient("https://rogxkddufkmjexekwzzr.supabase.co", "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt");
-    firebase.initializeApp({ 
-        apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", 
-        authDomain: "cricket-web-predict.firebaseapp.com", 
-        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", 
-        projectId: "cricket-web-predict" 
-    });
+    firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();
+    
     let tokens = 0;
     let userBets = JSON.parse(localStorage.getItem('userBets') || '{}');
 
@@ -103,6 +100,7 @@
 
     async function refreshBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();
+        // Fetch latest row to handle duplicate user_id rows in Supabase
         const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
         if (wallet) {
             tokens = wallet.balance;
@@ -121,11 +119,11 @@
             Object.keys(data).reverse().forEach(id => {
                 const q = data[id];
                 const myBet = userBets[id] ? userBets[id].option : null;
-                const myAmount = userBets[id] ? userBets[id].amount : 10;
-                const winner = q.winner; // This MUST match the string of the option exactly
+                const myAmount = userBets[id] ? userBets[id].amount : 0;
+                const winner = q.winner;
 
                 list.innerHTML += `
-                    <div class="glass-card" id="card-${id}">
+                    <div class="glass-card">
                         <h4 style="margin-bottom:20px;">${q.question}</h4>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                             ${q.options.map(o => {
@@ -150,9 +148,7 @@
                         </div>` : ''}
                     </div>`;
 
-                // WIN CHECK: If winner is set, I bet on it, and I haven't been paid yet
                 if (winner && myBet === winner && !userBets[id + '_paid']) {
-                    console.log("WIN DETECTED for question:", id);
                     payoutUser(id, myAmount);
                 }
             });
@@ -164,15 +160,12 @@
         if (tokens < betAmt) return alert("Insufficient Credits!");
 
         const { data: { user } } = await supabaseClient.auth.getUser();
-        
-        // Deduct money
         const { error } = await supabaseClient.from("wallets").update({ balance: tokens - betAmt }).eq("user_id", user.id);
         
         if (!error) {
-            userBets[qid] = { option: opt, amount: betAmt }; // Save both option and amount
+            userBets[qid] = { option: opt, amount: betAmt };
             localStorage.setItem('userBets', JSON.stringify(userBets));
             refreshBalance();
-            renderArena();
         }
     }
 
@@ -180,7 +173,6 @@
         const { data: { user } } = await supabaseClient.auth.getUser();
         const winAmount = betAmount * 2;
         
-        // Get fresh balance first to avoid overwrite errors
         const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
         const newTotal = (wallet ? wallet.balance : tokens) + winAmount;
 
@@ -189,11 +181,27 @@
         if (!error) {
             userBets[qid + '_paid'] = true;
             localStorage.setItem('userBets', JSON.stringify(userBets));
-            console.log(`PAID ₹${winAmount} to user!`);
             refreshBalance();
-        } else {
-            console.error("Payout failed:", error);
         }
+    }
+
+    async function addMoney() {
+        const amt = parseInt(document.getElementById("buy-amt").value);
+        if (!amt || amt < 50) return alert("Min ₹50");
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        try {
+            const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: user.id, amount: amt })
+            });
+            const data = await res.json();
+            if (data.payment_session_id) {
+                const cashfree = Cashfree({ mode: "sandbox" });
+                cashfree.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: "_self" });
+            }
+        } catch (e) { alert("Error connecting to payment."); }
     }
 
     function nav(id) {

@@ -82,7 +82,12 @@
 
 <script>
     const supabaseClient = supabase.createClient("https://rogxkddufkmjexekwzzr.supabase.co", "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt");
-    firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
+    firebase.initializeApp({ 
+        apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", 
+        authDomain: "cricket-web-predict.firebaseapp.com", 
+        databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", 
+        projectId: "cricket-web-predict" 
+    });
     const db = firebase.database();
     let tokens = 0;
     let userBets = JSON.parse(localStorage.getItem('userBets') || '{}');
@@ -112,10 +117,12 @@
             const data = snap.val();
             if(!data) return;
             list.innerHTML = "";
+            
             Object.keys(data).reverse().forEach(id => {
                 const q = data[id];
-                const lockedOption = userBets[id];
-                const winner = q.winner; // Host sets this in Firebase
+                const myBet = userBets[id] ? userBets[id].option : null;
+                const myAmount = userBets[id] ? userBets[id].amount : 10;
+                const winner = q.winner; // This MUST match the string of the option exactly
 
                 list.innerHTML += `
                     <div class="glass-card" id="card-${id}">
@@ -123,17 +130,17 @@
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                             ${q.options.map(o => {
                                 let stateClass = "";
-                                if (lockedOption === o) stateClass = "selected";
+                                if (myBet === o) stateClass = "selected";
                                 if (winner) {
                                     if (o === winner) stateClass = "correct";
-                                    else if (lockedOption === o) stateClass = "wrong";
+                                    else if (myBet === o) stateClass = "wrong";
                                 }
                                 return `<button class="btn-option ${stateClass}" 
-                                        ${lockedOption || winner ? 'disabled' : ''} 
+                                        ${myBet || winner ? 'disabled' : ''} 
                                         onclick="placeBet('${id}', '${o}')">${o}</button>`;
                             }).join('')}
                         </div>
-                        ${!lockedOption && !winner ? `
+                        ${!myBet && !winner ? `
                         <div class="slider-box">
                             <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:10px;">
                                 <span>BET AMOUNT</span>
@@ -142,10 +149,11 @@
                             <input type="range" min="10" max="50" value="10" step="5" oninput="document.getElementById('v-${id}').innerText=this.value" id="s-${id}">
                         </div>` : ''}
                     </div>`;
-                
-                // If a winner is announced and you won, update balance once
-                if (winner && lockedOption === winner && !userBets[id + '_paid']) {
-                    payoutUser(id, q.betAmt || 10);
+
+                // WIN CHECK: If winner is set, I bet on it, and I haven't been paid yet
+                if (winner && myBet === winner && !userBets[id + '_paid']) {
+                    console.log("WIN DETECTED for question:", id);
+                    payoutUser(id, myAmount);
                 }
             });
         });
@@ -157,24 +165,35 @@
 
         const { data: { user } } = await supabaseClient.auth.getUser();
         
-        // 1. Charge the user in Supabase
+        // Deduct money
         const { error } = await supabaseClient.from("wallets").update({ balance: tokens - betAmt }).eq("user_id", user.id);
         
         if (!error) {
-            userBets[qid] = opt;
+            userBets[qid] = { option: opt, amount: betAmt }; // Save both option and amount
             localStorage.setItem('userBets', JSON.stringify(userBets));
             refreshBalance();
             renderArena();
         }
     }
 
-    async function payoutUser(qid, originalBet) {
+    async function payoutUser(qid, betAmount) {
         const { data: { user } } = await supabaseClient.auth.getUser();
-        const winAmt = originalBet * 2;
-        await supabaseClient.from("wallets").update({ balance: tokens + winAmt }).eq("user_id", user.id);
-        userBets[qid + '_paid'] = true;
-        localStorage.setItem('userBets', JSON.stringify(userBets));
-        refreshBalance();
+        const winAmount = betAmount * 2;
+        
+        // Get fresh balance first to avoid overwrite errors
+        const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
+        const newTotal = (wallet ? wallet.balance : tokens) + winAmount;
+
+        const { error } = await supabaseClient.from("wallets").update({ balance: newTotal }).eq("user_id", user.id);
+        
+        if (!error) {
+            userBets[qid + '_paid'] = true;
+            localStorage.setItem('userBets', JSON.stringify(userBets));
+            console.log(`PAID ₹${winAmount} to user!`);
+            refreshBalance();
+        } else {
+            console.error("Payout failed:", error);
+        }
     }
 
     function nav(id) {

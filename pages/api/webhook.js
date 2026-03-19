@@ -22,6 +22,7 @@ export default async function handler(req, res) {
     if (!order_id) {
       console.log("No order_id found");
       return res.status(200).json({ ok: true });
+      console.log("Updating wallet:", order.user_id, newBalance);
     }
 
     // 🔍 Verify payment
@@ -48,11 +49,23 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
-      const { data: wallet } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("user_id", order.user_id)
-        .single();
+     // 💰 Get current balance safely
+const { data: wallet } = await supabase
+  .from("wallets")
+  .select("balance")
+  .eq("user_id", order.user_id)
+  .maybeSingle();
+
+// if wallet doesn't exist → start from 0
+const currentBalance = wallet?.balance || 0;
+
+const newBalance = currentBalance + order.amount;
+
+// ✅ Upsert (create OR update)
+await supabase.from("wallets").upsert({
+  user_id: order.user_id,
+  balance: newBalance
+});
 
       const newBalance = (wallet?.balance || 0) + order.amount;
 

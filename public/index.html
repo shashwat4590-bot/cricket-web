@@ -10,94 +10,102 @@
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        :root { --bg: #020617; --accent: #38bdf8; --gold: #fbbf24; --red: #ef4444; --glass: rgba(15, 23, 42, 0.95); --border: rgba(255, 255, 255, 0.1); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg); color: white; min-height: 100vh; background-image: radial-gradient(circle at top right, #1e293b, #020617); background-attachment: fixed; }
+        :root { --bg: #020617; --accent: #38bdf8; --gold: #fbbf24; --neon-green: #22c55e; --glass: rgba(15, 23, 42, 0.85); --border: rgba(255, 255, 255, 0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        .header-bar { position: fixed; top: 0; width: 100%; height: 75px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(20px); z-index: 2000; border-bottom: 1px solid var(--border); }
-        .token-pill { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1.5px solid var(--gold); padding: 8px 18px; border-radius: 50px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        body { background-color: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
         
-        .container { padding: 100px 20px 130px; max-width: 460px; margin: 0 auto; }
-        .page { display: none; } .page.active { display: block; animation: slideUp 0.4s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Stadium Background Logic */
+        .stadium-bg { position: fixed; inset: 0; background: linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.8)), url('https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=1000'); background-size: cover; background-position: center; z-index: -1; }
 
-        .glass-card { background: var(--glass); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        
-        /* Leaderboard UI */
-        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .leader-rank { width: 24px; height: 24px; background: var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; margin-right: 12px; }
-        .rank-1 { background: var(--gold); color: black; }
+        .header-bar { position: fixed; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(15px); z-index: 2000; border-bottom: 1px solid var(--border); }
+        .token-pill { background: #1e293b; border: 1.5px solid var(--gold); padding: 8px 16px; border-radius: 50px; font-weight: 800; color: var(--gold); cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-        /* Arena UI */
-        .scoreboard-mini { background: #1e293b; border-radius: 20px; padding: 15px; display: flex; justify-content: space-around; margin-bottom: 20px; border: 1px solid var(--accent); }
-        .score-item { text-align: center; }
-        .score-item p { font-size: 0.6rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
-        .bet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-bet { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: white; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; }
-        .btn-bet.selected { background: var(--accent) !important; color: #020617 !important; border-color: white; }
-        .btn-bet.correct { background: #22c55e !important; color: white !important; }
-        .btn-bet.wrong { background: #ef4444 !important; opacity: 0.5; }
-        
-        .amt-row { display: flex; justify-content: space-between; margin: 15px 0; gap: 6px; }
-        .amt-chip { flex: 1; background: #0f172a; border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
-        .amt-chip.active { background: var(--gold); color: #000; }
+        .container { padding: 90px 20px 120px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+        .page { display: none; } .page.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-place { background: var(--accent); color: black; width: 100%; padding: 18px; border-radius: 16px; font-weight: 900; border: none; cursor: pointer; text-transform: uppercase; }
-        .timer-bar { height: 4px; background: var(--accent); width: 100%; border-radius: 2px; margin-top: 10px; transition: width 1s linear; }
+        /* Scoreboard Styling */
+        .scoreboard-v2 { background: linear-gradient(to bottom, #1e293b, #0f172a); border-radius: 24px; padding: 15px; display: flex; justify-content: space-around; margin-bottom: 20px; border: 1px solid var(--accent); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        .score-val { font-size: 1.8rem; font-weight: 900; color: var(--gold); display: block; }
+        .score-label { font-size: 0.65rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
 
-        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        
-        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(25px); display: flex; justify-content: space-around; padding: 16px; border-radius: 30px; border: 1px solid var(--border); z-index: 1000; }
-        .nav-link { color: #64748b; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: none; border: none; }
+        /* Neon Question Card */
+        .neon-card { background: var(--glass); backdrop-filter: blur(20px); border: 2px solid var(--accent); border-radius: 35px; padding: 25px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .q-badge { background: var(--accent); color: #020617; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 900; margin-bottom: 15px; display: inline-block; }
+        .q-text { font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 25px; line-height: 1.3; }
+
+        /* Green Pill Buttons (As per your Image) */
+        .bet-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .btn-bet { background: rgba(34, 197, 94, 0.1); border: 2.5px solid var(--neon-green); color: white; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .btn-bet.selected { background: var(--neon-green) !important; color: #020617 !important; }
+        .btn-bet.correct { background: #22c55e !important; box-shadow: 0 0 20px #22c55e; }
+        .btn-bet.wrong { border-color: var(--red); opacity: 0.4; }
+
+        /* Leaderboard */
+        .leader-card { background: var(--glass); border-radius: 24px; padding: 20px; margin-top: 20px; }
+        .leader-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .rank-box { width: 24px; height: 24px; background: var(--gold); color: black; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; margin-right: 10px; }
+
+        /* Win Overlay */
+        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .boom-text { font-size: 4rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px var(--gold); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Navigation */
+        .nav-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 16px; border-radius: 30px; border: 1px solid var(--border); z-index: 1000; }
+        .nav-link { color: #64748b; font-weight: 800; font-size: 0.7rem; border: none; background: none; cursor: pointer; }
         .nav-link.active { color: var(--accent); }
+        
+        .timer-line { height: 4px; background: var(--accent); width: 100%; border-radius: 2px; margin-bottom: 15px; transition: width 1s linear; }
     </style>
 </head>
 <body>
+    <div class="stadium-bg"></div>
     <div id="win-overlay">
-        <div style="font-size: 3rem; font-weight: 900; color: var(--gold);">🔥 BOOM!</div>
-        <h1 id="win-amount" style="font-size: 4.5rem; margin: 10px 0;">₹0</h1>
-        <p style="letter-spacing: 2px; font-weight: 800; color: var(--accent);">YOU RULE THE STADIUM!</p>
+        <div class="boom-text">🔥 BOOM!</div>
+        <h1 id="win-amount" style="font-size: 5rem; color: white;">₹0</h1>
+        <p style="color: var(--accent); font-weight: 800; letter-spacing: 2px;">WINNER WINNER!</p>
     </div>
 
     <header class="header-bar">
-        <div style="font-weight:900; font-size:1.3rem;">PREDICT<span style="color:var(--accent)">LIVE</span></div>
+        <div style="font-weight:900; font-size:1.4rem; letter-spacing:-1px;">PREDICT<span style="color:var(--accent)">LIVE</span></div>
         <div class="token-pill" onclick="refreshBalance()">
-            <span style="font-size: 0.65rem; opacity: 0.7;">CR</span>
             <span id="pill-bal">...</span>
+            <span style="font-size: 0.6rem; opacity: 0.8;">CR</span>
         </div>
     </header>
 
     <div class="container">
         <div id="home" class="page active">
-            <div class="glass-card" style="background: linear-gradient(135deg, #38bdf8, #6366f1); border:none; padding: 40px 26px; text-align: center;">
-                <h2 style="font-size: 2.2rem; margin-bottom: 20px;">CSK vs MI</h2>
-                <button class="btn-place" style="background: white; color: #6366f1;" onclick="nav('arena')">ENTER STADIUM</button>
+            <div class="neon-card" style="background: linear-gradient(135deg, #0ea5e9, #6366f1); border:none; margin-bottom: 25px;">
+                <h2 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 15px;">CSK vs MI</h2>
+                <p style="opacity: 0.9; margin-bottom: 20px; font-weight: 600;">Wankhede Stadium, Mumbai</p>
+                <button onclick="nav('arena')" style="background:white; color:#6366f1; border:none; padding:15px 40px; border-radius:50px; font-weight:900; cursor:pointer;">PLAY NOW</button>
             </div>
             
-            <div class="glass-card">
-                <h3 style="margin-bottom: 15px; font-weight: 800; color: var(--gold);">🏆 TOP EARNERS</h3>
-                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank rank-1">1</div><span>Rohan_P_7</span></div><span style="color:var(--gold); font-weight:800;">₹42,500</span></div>
-                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">2</div><span>Karan_Web</span></div><span style="font-weight:800;">₹31,200</span></div>
-                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">3</div><span>Rahul_Rider69</span></div><span style="font-weight:800;">₹28,950</span></div>
-                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">4</div><span>Aryan_45</span></div><span style="font-weight:800;">₹15,400</span></div>
+            <div class="leader-card">
+                <h3 style="color: var(--gold); font-weight: 900; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">🏆 TOP EARNERS</h3>
+                <div class="leader-row"><span><div style="display:inline-flex" class="rank-box">1</div> Rohan_Predictor</span><span style="color:var(--gold); font-weight:800;">₹52,400</span></div>
+                <div class="leader-row"><span><div style="display:inline-flex; background:#94a3b8" class="rank-box">2</div> Karan_Cricket</span><span style="font-weight:800;">₹38,200</span></div>
+                <div class="leader-row"><span><div style="display:inline-flex; background:#b45309" class="rank-box">3</div> Shashwat_King</span><span style="font-weight:800;">₹29,150</span></div>
             </div>
         </div>
 
         <div id="arena" class="page">
             <div id="arena-content">
-                <div style="text-align:center; padding: 60px 0; color: #64748b;">
-                    <div style="font-size: 3rem; margin-bottom: 10px;">🏟️</div>
-                    <h3>Connecting to Match...</h3>
+                <div style="text-align:center; padding-top: 100px;">
+                    <h3 style="opacity: 0.5;">Connecting to Stadium...</h3>
                 </div>
             </div>
         </div>
 
         <div id="wallet" class="page">
-            <div class="glass-card" style="text-align:center;">
-                <p style="color: #94a3b8; font-size: 0.75rem; font-weight: 800;">YOUR BALANCE</p>
-                <h1 id="wall-bal" style="font-size:4.2rem; color:var(--gold); font-weight: 900;">0</h1>
-                <input id="buy-amt" type="number" placeholder="₹ Amount" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); padding:18px; border-radius:16px; color:white; text-align:center; outline:none; margin: 20px 0;">
-                <button class="btn-place" style="background: var(--gold);" onclick="addMoney()">ADD TO WALLET</button>
+            <div class="neon-card">
+                <p style="color: #94a3b8; font-weight: 800; font-size: 0.8rem;">TOTAL BALANCE</p>
+                <h1 id="wall-bal" style="font-size: 4.5rem; font-weight: 900; color: var(--gold); margin: 10px 0;">0</h1>
+                <input id="buy-amt" type="number" placeholder="Enter Amount (₹)" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--border); padding:20px; border-radius:20px; color:white; text-align:center; font-size:1.2rem; margin-bottom: 20px; outline:none;">
+                <button onclick="addMoney()" style="background:var(--gold); color:black; width:100%; padding:20px; border-radius:20px; font-weight:900; border:none; cursor:pointer;">ADD FUNDS</button>
             </div>
         </div>
     </div>
@@ -135,8 +143,7 @@
     function initArena() {
         db.ref("questions").on("value", snap => {
             const data = snap.val();
-            const arena = document.getElementById('arena-content');
-            if(!data) { arena.innerHTML = `<div style="text-align:center; padding:60px;"><h3>Connecting to Match...</h3></div>`; return; }
+            if(!data) return;
             const qid = Object.keys(data).pop();
             const q = data[qid];
             if(curQid !== qid) { curQid = qid; selOpt = null; startTimer(); }
@@ -148,14 +155,14 @@
         const myBet = userBets[qid] ? userBets[qid].option : null;
         const res = q.result;
         document.getElementById('arena-content').innerHTML = `
-            <div class="scoreboard-mini">
-                <div class="score-item"><p>SCORE</p><h2>${q.matchScore || '152/3'}</h2></div>
-                <div class="score-item"><p>OVER</p><h2>${q.matchOver || '15.2'}</h2></div>
-                <div class="score-item"><p>TARGET</p><h2>180</h2></div>
+            <div class="scoreboard-v2">
+                <div style="text-align:center"><span class="score-label">Score</span><span class="score-val">${q.matchScore || '0/0'}</span></div>
+                <div style="text-align:center"><span class="score-label">Over</span><span class="score-val">${q.matchOver || '0.0'}</span></div>
             </div>
-            <div class="glass-card">
-                <h3 style="text-align:center;">${q.question}</h3>
-                ${!myBet && !res ? `<div id="timer-txt" style="text-align:center; color:var(--gold); font-weight:800; font-size:0.8rem; margin:10px 0;">⏱ 10s LEFT</div><div class="timer-bar" id="t-bar"></div>` : ''}
+            <div class="neon-card">
+                <div class="q-badge">Q: LIVE PREDICTION</div>
+                <div class="q-text">${q.question}</div>
+                ${!myBet && !res ? `<div class="timer-line" id="t-bar"></div>` : ''}
                 <div class="bet-grid">
                     ${q.options.map(o => {
                         let cls = "";
@@ -165,17 +172,19 @@
                     }).join('')}
                 </div>
                 ${!myBet && !res ? `
-                <div class="amt-row">${[50, 100, 250, 500].map(a => `<div class="amt-chip ${selAmt==a?'active':''}" onclick="selAmtBtn(${a})">₹${a}</div>`).join('')}</div>
-                <button class="btn-place" id="place-btn" onclick="placeBet('${qid}', ${q.multiplier || 2})">PLACE BET</button>` : ''}
+                <div style="display:flex; justify-content:space-between; margin-top:20px; gap:8px;">
+                    ${[50, 100, 250, 500].map(a => `<div class="amt-chip ${selAmt==a?'active':''}" onclick="selAmtBtn(${a})" style="flex:1; background:#0f172a; padding:10px; border-radius:12px; border:1px solid var(--border); text-align:center; font-weight:800; cursor:pointer; font-size:0.8rem;">₹${a}</div>`).join('')}
+                </div>
+                <button onclick="placeBet('${qid}', ${q.multiplier || 2})" style="background:var(--accent); color:black; width:100%; padding:20px; border-radius:50px; font-weight:900; border:none; margin-top:15px; cursor:pointer;">PLACE PREDICTION</button>` : ''}
             </div>`;
-            if(res && myBet === res && !userBets[qid + '_paid']) handleWin(qid, userBets[qid].amount, q.multiplier);
+        if(res && myBet === res && !userBets[qid + '_paid']) handleWin(qid, userBets[qid].amount, q.multiplier);
     }
 
     function selOptBtn(o) { selOpt = o; initArena(); }
     function selAmtBtn(a) { selAmt = a; initArena(); }
 
     async function placeBet(qid, mult) {
-        if(!selOpt) return alert("Select an outcome!");
+        if(!selOpt) return alert("Select an option!");
         if(tokens < selAmt) return alert("Low Balance!");
         const { data: { user } } = await supabaseClient.auth.getUser();
         await supabaseClient.from("wallets").update({ balance: tokens - selAmt }).eq("user_id", user.id);
@@ -201,9 +210,9 @@
         timerVal = 10;
         const interval = setInterval(() => {
             timerVal--;
-            const txt = document.getElementById('timer-txt'), bar = document.getElementById('t-bar');
-            if(txt) txt.innerText = `⏱ ${timerVal}s LEFT`; if(bar) bar.style.width = (timerVal * 10) + "%";
-            if(timerVal <= 0 || !txt) { clearInterval(interval); if(document.getElementById('place-btn')) document.getElementById('place-btn').disabled = true; }
+            const bar = document.getElementById('t-bar');
+            if(bar) bar.style.width = (timerVal * 10) + "%";
+            if(timerVal <= 0 || !bar) clearInterval(interval);
         }, 1000);
     }
 
@@ -213,14 +222,6 @@
         document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('n-'+id).classList.add('active');
-    }
-
-    async function addMoney() {
-        const amt = parseInt(document.getElementById("buy-amt").value);
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ user_id: user.id, amount: amt }) });
-        const d = await res.json();
-        if (d.payment_session_id) { const cf = Cashfree({ mode: "production" }); cf.checkout({ paymentSessionId: d.payment_session_id, redirectTarget: "_self" }); }
     }
 </script>
 </body>

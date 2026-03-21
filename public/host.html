@@ -2,44 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PredictLive Admin | Stadium Control</title>
+    <title>PredictLive Admin | Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        body { background: #020617; color: white; font-family: sans-serif; padding: 20px; }
-        .panel { background: #0f172a; padding: 25px; border-radius: 15px; border: 1px solid #1e293b; max-width: 600px; margin: 0 auto; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #020617; color: white; border: 1px solid #334155; border-radius: 8px; }
-        .btn-push { background: #38bdf8; color: black; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .active-card { background: #1e293b; padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #fbbf24; }
-        .res-btn { background: #fbbf24; color: black; border: none; padding: 8px 12px; border-radius: 6px; margin: 5px; cursor: pointer; font-weight: bold; }
+        body { background: #020617; color: white; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .panel { background: #0f172a; padding: 25px; border-radius: 20px; border: 1px solid #1e293b; }
+        .quick-btn { background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 12px; border-radius: 12px; cursor: pointer; margin: 5px; width: 45%; font-weight: bold; }
+        .quick-btn:hover { border-color: #38bdf8; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #020617; color: white; border: 1px solid #334155; border-radius: 10px; }
+        .btn-deploy { background: #38bdf8; color: black; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 10px; }
+        .active-card { background: #020617; padding: 15px; border-radius: 15px; margin-top: 15px; border-left: 5px solid #fbbf24; }
+        .res-btn { background: #fbbf24; color: black; border: none; padding: 10px; border-radius: 8px; margin: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="panel">
-        <h3>🏟️ Stadium Live Control</h3>
-        <input type="text" id="m-score" placeholder="Live Score (e.g. 152/3)">
-        <input type="text" id="m-over" placeholder="Current Over (e.g. 15.2)">
-        <hr style="opacity:0.1; margin: 20px 0;">
-        <input type="text" id="q-text" value="NEXT BALL KYA HOGA?" placeholder="Question">
-        <input type="text" id="q-opts" value="DOT BALL, SINGLE, FOUR, SIX, WICKET" placeholder="Options">
-        <button class="btn-push" onclick="deploy()">PUSH NEXT BALL</button>
-        <div id="active-list"></div>
+    <div class="grid">
+        <div class="panel">
+            <h3>🏦 Quick Deploy</h3>
+            <div id="bank">
+                <button class="quick-btn" onclick="setQ('NEXT BALL KYA HOGA?','DOT BALL, SINGLE, FOUR, SIX, WICKET', 2)">Next Ball</button>
+                <button class="quick-btn" onclick="setQ('BOUNDARY IN OVER?','YES, NO', 1.8)">Boundary?</button>
+                <button class="quick-btn" onclick="setQ('TOSS WINNER','CSK, MI', 1.9)">Toss</button>
+                <button class="quick-btn" onclick="setQ('MATCH WINNER','CSK, MI', 1.8)">Match Win</button>
+            </div>
+            <hr style="opacity:0.1; margin: 20px 0;">
+            <input type="text" id="m-score" placeholder="Live Score (152/3)">
+            <input type="text" id="m-over" placeholder="Over (15.2)">
+            <input type="text" id="q-text" placeholder="Question">
+            <input type="text" id="q-opts" placeholder="Options">
+            <input type="number" id="q-mult" placeholder="Multiplier" value="2">
+            <button class="btn-deploy" onclick="deploy()">DEPLOY TO ARENA</button>
+        </div>
+
+        <div class="panel">
+            <h3>📡 Dashboard (Pick Winner)</h3>
+            <div id="active-list"></div>
+            <button onclick="db.ref('questions').remove()" style="color:red; background:none; border:none; margin-top:30px; cursor:pointer;">Wipe Arena</button>
+        </div>
     </div>
+
 <script>
     firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();
 
+    function setQ(q, o, m) {
+        document.getElementById('q-text').value = q;
+        document.getElementById('q-opts').value = o;
+        document.getElementById('q-mult').value = m;
+    }
+
     function deploy() {
-        const q = document.getElementById('q-text').value;
-        const o = document.getElementById('q-opts').value.split(',').map(s=>s.trim());
-        const s = document.getElementById('m-score').value;
-        db.ref("questions").push({ question: q, options: o, matchScore: s, multiplier: 2, result: null });
+        const q = document.getElementById('q-text').value, o = document.getElementById('q-opts').value.split(',').map(s=>s.trim()), s = document.getElementById('m-score').value, v = document.getElementById('m-over').value, m = document.getElementById('q-mult').value;
+        db.ref("questions").push({ question: q, options: o, matchScore: s, matchOver: v, multiplier: parseFloat(m), result: null });
     }
 
     db.ref("questions").on("value", (snap) => {
         const list = document.getElementById('active-list');
         const data = snap.val(); list.innerHTML = ""; if(!data) return;
-        Object.keys(data).forEach(id => {
+        Object.keys(data).reverse().forEach(id => {
             const q = data[id];
             const div = document.createElement('div'); div.className = "active-card";
             div.innerHTML = `<strong>${q.question}</strong><br>`;
@@ -49,7 +71,7 @@
                     b.onclick = () => db.ref("questions/"+id).update({result: opt});
                     div.appendChild(b);
                 });
-            } else { div.innerHTML += `<span>Result: ${q.result}</span>`; }
+            } else { div.innerHTML += `<span style="color:#38bdf8">Result: ${q.result}</span>`; }
             list.appendChild(div);
         });
     });

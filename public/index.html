@@ -10,7 +10,7 @@
     <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        :root { --bg: #020617; --accent: #38bdf8; --gold: #fbbf24; --red: #ef4444; --glass: rgba(15, 23, 42, 0.9); --border: rgba(255, 255, 255, 0.1); }
+        :root { --bg: #020617; --accent: #38bdf8; --gold: #fbbf24; --red: #ef4444; --glass: rgba(15, 23, 42, 0.95); --border: rgba(255, 255, 255, 0.1); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg); color: white; min-height: 100vh; background-image: radial-gradient(circle at top right, #1e293b, #020617); background-attachment: fixed; }
         
@@ -21,42 +21,42 @@
         .page { display: none; } .page.active { display: block; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .glass-card { background: var(--glass); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 20px; }
+        .glass-card { background: var(--glass); border: 1px solid var(--border); border-radius: 28px; padding: 26px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         
-        /* Fast Betting UI */
+        /* Leaderboard UI */
+        .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .leader-rank { width: 24px; height: 24px; background: var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; margin-right: 12px; }
+        .rank-1 { background: var(--gold); color: black; }
+
+        /* Arena UI */
         .scoreboard-mini { background: #1e293b; border-radius: 20px; padding: 15px; display: flex; justify-content: space-around; margin-bottom: 20px; border: 1px solid var(--accent); }
         .score-item { text-align: center; }
-        .score-item p { font-size: 0.6rem; color: #94a3b8; font-weight: 800; }
-        
+        .score-item p { font-size: 0.6rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
         .bet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-bet { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: white; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-bet.selected { background: var(--accent) !important; color: #020617 !important; font-weight: 800; }
-        .btn-bet.correct { background: #22c55e !important; color: white !important; animation: pulse 0.5s infinite; }
+        .btn-bet { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: white; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; }
+        .btn-bet.selected { background: var(--accent) !important; color: #020617 !important; border-color: white; }
+        .btn-bet.correct { background: #22c55e !important; color: white !important; }
         .btn-bet.wrong { background: #ef4444 !important; opacity: 0.5; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        .amt-row { display: flex; justify-content: space-between; margin: 15px 0; gap: 5px; }
+        
+        .amt-row { display: flex; justify-content: space-between; margin: 15px 0; gap: 6px; }
         .amt-chip { flex: 1; background: #0f172a; border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
         .amt-chip.active { background: var(--gold); color: #000; }
 
-        .btn-place { background: var(--accent); color: black; width: 100%; padding: 18px; border-radius: 16px; font-weight: 900; border: none; cursor: pointer; }
+        .btn-place { background: var(--accent); color: black; width: 100%; padding: 18px; border-radius: 16px; font-weight: 900; border: none; cursor: pointer; text-transform: uppercase; }
         .timer-bar { height: 4px; background: var(--accent); width: 100%; border-radius: 2px; margin-top: 10px; transition: width 1s linear; }
 
-        /* WIN ANIMATION OVERLAY */
-        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .win-text { font-size: 3rem; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px var(--gold); animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes dropIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 16px; border-radius: 30px; border: 1px solid var(--border); z-index: 1000; }
+        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        
+        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(25px); display: flex; justify-content: space-around; padding: 16px; border-radius: 30px; border: 1px solid var(--border); z-index: 1000; }
         .nav-link { color: #64748b; font-weight: 800; font-size: 0.75rem; cursor: pointer; background: none; border: none; }
         .nav-link.active { color: var(--accent); }
     </style>
 </head>
 <body>
     <div id="win-overlay">
-        <div class="win-text">🔥 BOOM!</div>
-        <h1 id="win-amount" style="font-size: 4rem; margin: 10px 0;">₹0</h1>
-        <p style="letter-spacing: 2px; font-weight: 800; color: var(--accent);">STADIUM IS ROARING!</p>
+        <div style="font-size: 3rem; font-weight: 900; color: var(--gold);">🔥 BOOM!</div>
+        <h1 id="win-amount" style="font-size: 4.5rem; margin: 10px 0;">₹0</h1>
+        <p style="letter-spacing: 2px; font-weight: 800; color: var(--accent);">YOU RULE THE STADIUM!</p>
     </div>
 
     <header class="header-bar">
@@ -73,7 +73,14 @@
                 <h2 style="font-size: 2.2rem; margin-bottom: 20px;">CSK vs MI</h2>
                 <button class="btn-place" style="background: white; color: #6366f1;" onclick="nav('arena')">ENTER STADIUM</button>
             </div>
-            <div id="history-list" style="margin-top:20px;"></div>
+            
+            <div class="glass-card">
+                <h3 style="margin-bottom: 15px; font-weight: 800; color: var(--gold);">🏆 TOP EARNERS</h3>
+                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank rank-1">1</div><span>Rohan_P_7</span></div><span style="color:var(--gold); font-weight:800;">₹42,500</span></div>
+                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">2</div><span>Karan_Web</span></div><span style="font-weight:800;">₹31,200</span></div>
+                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">3</div><span>Shashwat_Bot</span></div><span style="font-weight:800;">₹28,950</span></div>
+                <div class="leader-item"><div style="display:flex; align-items:center;"><div class="leader-rank">4</div><span>Aryan_45</span></div><span style="font-weight:800;">₹15,400</span></div>
+            </div>
         </div>
 
         <div id="arena" class="page">
@@ -81,16 +88,16 @@
                 <div style="text-align:center; padding: 60px 0; color: #64748b;">
                     <div style="font-size: 3rem; margin-bottom: 10px;">🏟️</div>
                     <h3>Connecting to Match...</h3>
-                    <p style="font-size:0.8rem; margin-top:5px;">Wait for Host to push a Ball</p>
                 </div>
             </div>
         </div>
 
         <div id="wallet" class="page">
             <div class="glass-card" style="text-align:center;">
+                <p style="color: #94a3b8; font-size: 0.75rem; font-weight: 800;">YOUR BALANCE</p>
                 <h1 id="wall-bal" style="font-size:4.2rem; color:var(--gold); font-weight: 900;">0</h1>
                 <input id="buy-amt" type="number" placeholder="₹ Amount" style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--border); padding:18px; border-radius:16px; color:white; text-align:center; outline:none; margin: 20px 0;">
-                <button class="btn-place" style="background: var(--gold);" onclick="addMoney()">ADD MONEY</button>
+                <button class="btn-place" style="background: var(--gold);" onclick="addMoney()">ADD TO WALLET</button>
             </div>
         </div>
     </div>
@@ -102,59 +109,13 @@
     </nav>
 
 <script>
-    // Add this at the top of your <script>
-let soundUnlocked = false;
-const winSound = new Audio('https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg');
-
-// Function to unlock audio on first click
-function unlockAudio() {
-    if (!soundUnlocked) {
-        winSound.play().then(() => {
-            winSound.pause();
-            winSound.currentTime = 0;
-            soundUnlocked = true;
-        }).catch(e => console.log("Audio unlock failed:", e));
-    }
-}
-
-// Update your nav function to unlock audio
-function nav(id) {
-    unlockAudio(); // Unlocks sound when you switch tabs or enter stadium
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.getElementById('n-' + id).classList.add('active');
-}
-
-// Update your handleWin function
-async function handleWin(qid, amt, mult) {
-    userBets[qid + '_paid'] = true;
-    localStorage.setItem('userBets', JSON.stringify(userBets));
-    const winVal = Math.floor(amt * mult);
-    
-    // Play sound (Now it will work because of unlockAudio)
-    if (soundUnlocked) {
-        winSound.play().catch(e => console.log("Playback failed:", e));
-    }
-
-    const overlay = document.getElementById('win-overlay');
-    document.getElementById('win-amount').innerText = `₹${winVal}`;
-    overlay.style.display = 'flex';
-    
-    // Update Supabase
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    await supabaseClient.from("wallets").update({ balance: tokens + winVal }).eq("user_id", user.id);
-    
-    setTimeout(() => { overlay.style.display = 'none'; }, 4000);
-    refreshBalance();
-}
     const supabaseClient = supabase.createClient("https://rogxkddufkmjexekwzzr.supabase.co", "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt");
     firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();
     
-    let tokens = 0, selOpt = null, selAmt = 100, curQid = null, timerVal = 10;
+    let tokens = 0, selOpt = null, selAmt = 100, curQid = null, timerVal = 10, soundUnlocked = false;
     let userBets = JSON.parse(localStorage.getItem('userBets') || '{}');
-    const winSound = new Audio('https://www.soundjay.com/misc/sounds/stadium-cheer-1.mp3');
+    const winSound = new Audio('https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg');
 
     window.onload = checkUser;
 
@@ -168,11 +129,7 @@ async function handleWin(qid, amt, mult) {
     async function refreshBalance() {
         const { data: { user } } = await supabaseClient.auth.getUser();
         const { data: wallet } = await supabaseClient.from("wallets").select("balance").eq("user_id", user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
-        if (wallet) { 
-            tokens = wallet.balance; 
-            document.getElementById('pill-bal').innerText = tokens; 
-            document.getElementById('wall-bal').innerText = tokens; 
-        }
+        if (wallet) { tokens = wallet.balance; document.getElementById('pill-bal').innerText = tokens; document.getElementById('wall-bal').innerText = tokens; }
     }
 
     function initArena() {
@@ -180,7 +137,6 @@ async function handleWin(qid, amt, mult) {
             const data = snap.val();
             const arena = document.getElementById('arena-content');
             if(!data) { arena.innerHTML = `<div style="text-align:center; padding:60px;"><h3>Connecting to Match...</h3></div>`; return; }
-            
             const qid = Object.keys(data).pop();
             const q = data[qid];
             if(curQid !== qid) { curQid = qid; selOpt = null; startTimer(); }
@@ -191,11 +147,10 @@ async function handleWin(qid, amt, mult) {
     function renderMatch(q, qid) {
         const myBet = userBets[qid] ? userBets[qid].option : null;
         const res = q.result;
-        
         document.getElementById('arena-content').innerHTML = `
             <div class="scoreboard-mini">
-                <div class="score-item"><p>SCORE</p><h2>${q.matchScore || '0/0'}</h2></div>
-                <div class="score-item"><p>OVER</p><h2>${q.matchOver || '0.0'}</h2></div>
+                <div class="score-item"><p>SCORE</p><h2>${q.matchScore || '152/3'}</h2></div>
+                <div class="score-item"><p>OVER</p><h2>${q.matchOver || '15.2'}</h2></div>
                 <div class="score-item"><p>TARGET</p><h2>180</h2></div>
             </div>
             <div class="glass-card">
@@ -209,9 +164,10 @@ async function handleWin(qid, amt, mult) {
                         return `<button class="btn-bet ${cls}" onclick="selOptBtn('${o}')" ${myBet || res ? 'disabled' : ''}>${o}</button>`;
                     }).join('')}
                 </div>
-                ${!myBet && !res ? `<div class="amt-row">${[50, 100, 250, 500].map(a => `<div class="amt-chip ${selAmt==a?'active':''}" onclick="selAmtBtn(${a})">₹${a}</div>`).join('')}</div><button class="btn-place" id="place-btn" onclick="placeBet('${qid}', ${q.multiplier || 2})">PLACE BET</button>` : ''}
+                ${!myBet && !res ? `
+                <div class="amt-row">${[50, 100, 250, 500].map(a => `<div class="amt-chip ${selAmt==a?'active':''}" onclick="selAmtBtn(${a})">₹${a}</div>`).join('')}</div>
+                <button class="btn-place" id="place-btn" onclick="placeBet('${qid}', ${q.multiplier || 2})">PLACE BET</button>` : ''}
             </div>`;
-            
             if(res && myBet === res && !userBets[qid + '_paid']) handleWin(qid, userBets[qid].amount, q.multiplier);
     }
 
@@ -219,30 +175,26 @@ async function handleWin(qid, amt, mult) {
     function selAmtBtn(a) { selAmt = a; initArena(); }
 
     async function placeBet(qid, mult) {
-        if(!selOpt) return alert("Pick an outcome!");
+        if(!selOpt) return alert("Select an outcome!");
         if(tokens < selAmt) return alert("Low Balance!");
         const { data: { user } } = await supabaseClient.auth.getUser();
         await supabaseClient.from("wallets").update({ balance: tokens - selAmt }).eq("user_id", user.id);
         userBets[qid] = { option: selOpt, amount: selAmt };
         localStorage.setItem('userBets', JSON.stringify(userBets));
-        refreshBalance(); initArena();
+        await refreshBalance(); initArena();
     }
 
     async function handleWin(qid, amt, mult) {
-        userBets[qid + '_paid'] = true;
-        localStorage.setItem('userBets', JSON.stringify(userBets));
+        userBets[qid + '_paid'] = true; localStorage.setItem('userBets', JSON.stringify(userBets));
+        if(soundUnlocked) winSound.play();
         const winVal = Math.floor(amt * mult);
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        await supabaseClient.from("wallets").update({ balance: tokens + winVal }).eq("user_id", user.id);
-        
-        // ANIMATION & SOUND
-        winSound.play();
         const overlay = document.getElementById('win-overlay');
         document.getElementById('win-amount').innerText = `₹${winVal}`;
         overlay.style.display = 'flex';
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        await supabaseClient.from("wallets").update({ balance: tokens + winVal }).eq("user_id", user.id);
         setTimeout(() => { overlay.style.display = 'none'; }, 4000);
-        
-        refreshBalance();
+        await refreshBalance();
     }
 
     function startTimer() {
@@ -256,10 +208,19 @@ async function handleWin(qid, amt, mult) {
     }
 
     function nav(id) {
+        if(!soundUnlocked) { winSound.play().then(() => { winSound.pause(); winSound.currentTime = 0; soundUnlocked = true; }); }
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.getElementById('n-'+id).classList.add('active');
+    }
+
+    async function addMoney() {
+        const amt = parseInt(document.getElementById("buy-amt").value);
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const res = await fetch("https://ipl-web-ten.vercel.app/api/create-order", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ user_id: user.id, amount: amt }) });
+        const d = await res.json();
+        if (d.payment_session_id) { const cf = Cashfree({ mode: "production" }); cf.checkout({ paymentSessionId: d.payment_session_id, redirectTarget: "_self" }); }
     }
 </script>
 </body>

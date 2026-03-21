@@ -102,6 +102,52 @@
     </nav>
 
 <script>
+    // Add this at the top of your <script>
+let soundUnlocked = false;
+const winSound = new Audio('https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg');
+
+// Function to unlock audio on first click
+function unlockAudio() {
+    if (!soundUnlocked) {
+        winSound.play().then(() => {
+            winSound.pause();
+            winSound.currentTime = 0;
+            soundUnlocked = true;
+        }).catch(e => console.log("Audio unlock failed:", e));
+    }
+}
+
+// Update your nav function to unlock audio
+function nav(id) {
+    unlockAudio(); // Unlocks sound when you switch tabs or enter stadium
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('n-' + id).classList.add('active');
+}
+
+// Update your handleWin function
+async function handleWin(qid, amt, mult) {
+    userBets[qid + '_paid'] = true;
+    localStorage.setItem('userBets', JSON.stringify(userBets));
+    const winVal = Math.floor(amt * mult);
+    
+    // Play sound (Now it will work because of unlockAudio)
+    if (soundUnlocked) {
+        winSound.play().catch(e => console.log("Playback failed:", e));
+    }
+
+    const overlay = document.getElementById('win-overlay');
+    document.getElementById('win-amount').innerText = `₹${winVal}`;
+    overlay.style.display = 'flex';
+    
+    // Update Supabase
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    await supabaseClient.from("wallets").update({ balance: tokens + winVal }).eq("user_id", user.id);
+    
+    setTimeout(() => { overlay.style.display = 'none'; }, 4000);
+    refreshBalance();
+}
     const supabaseClient = supabase.createClient("https://rogxkddufkmjexekwzzr.supabase.co", "sb_publishable_XSvlPxPfiuGIXA-8VSwJGg__yNSNjTt");
     firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();

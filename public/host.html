@@ -2,44 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PredictLive Admin | Command Center</title>
+    <title>PredictLive Host | Elite Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap');
         body { background: #020617; color: white; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .panel { background: #0f172a; padding: 25px; border-radius: 20px; border: 1px solid #1e293b; }
-        .quick-btn { background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 12px; border-radius: 12px; cursor: pointer; margin: 5px; width: 45%; font-weight: bold; }
-        .quick-btn:hover { border-color: #38bdf8; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #020617; color: white; border: 1px solid #334155; border-radius: 10px; }
-        .btn-deploy { background: #38bdf8; color: black; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 10px; }
-        .active-card { background: #020617; padding: 15px; border-radius: 15px; margin-top: 15px; border-left: 5px solid #fbbf24; }
-        .res-btn { background: #fbbf24; color: black; border: none; padding: 10px; border-radius: 8px; margin: 5px; cursor: pointer; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #0f172a; padding: 25px; border-radius: 20px; border: 1px solid #1e293b; height: fit-content; }
+        
+        .section-title { color: #38bdf8; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 10px; margin-top: 15px; text-transform: uppercase; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        .quick-btn { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 12px; border-radius: 12px; cursor: pointer; width: calc(33.33% - 8px); font-weight: 700; font-size: 0.75rem; transition: 0.2s; }
+        .quick-btn:hover { border-color: #38bdf8; background: #1e293b; transform: translateY(-2px); }
+        
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #020617; color: white; border: 1px solid #334155; border-radius: 10px; font-weight: 600; }
+        .btn-deploy { background: #38bdf8; color: black; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: 900; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        
+        .live-item { background: #020617; padding: 15px; border-radius: 15px; margin-top: 15px; border-left: 5px solid #fbbf24; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity:0; transform: translateX(10px); } to { opacity:1; transform: translateX(0); } }
+        
+        .win-btn { background: #22c55e; color: white; border: none; padding: 8px 12px; border-radius: 8px; margin: 4px; cursor: pointer; font-weight: 800; font-size: 0.7rem; }
+        .win-btn:hover { filter: brightness(1.2); }
     </style>
 </head>
 <body>
     <div class="grid">
-        <div class="panel">
-            <h3>🏦 Quick Deploy</h3>
-            <div id="bank">
-                <button class="quick-btn" onclick="setQ('NEXT BALL KYA HOGA?','DOT BALL, SINGLE, FOUR, SIX, WICKET', 2)">Next Ball</button>
-                <button class="quick-btn" onclick="setQ('BOUNDARY IN OVER?','YES, NO', 1.8)">Boundary?</button>
-                <button class="quick-btn" onclick="setQ('TOSS WINNER','CSK, MI', 1.9)">Toss</button>
-                <button class="quick-btn" onclick="setQ('MATCH WINNER','CSK, MI', 1.8)">Match Win</button>
+        <div class="card">
+            <h2 style="margin-bottom:20px; font-weight:900;">🏟️ STADIUM COMMAND</h2>
+            
+            <div class="section-title">⚡ Ball by Ball</div>
+            <div class="btn-group">
+                <button class="quick-btn" onclick="setQ('NEXT BALL RESULT?','0, 1, 4, 6, WICKET', 2)">Next Ball</button>
+                <button class="quick-btn" onclick="setQ('WILL NEXT BALL BE A DOT?','YES, NO', 1.8)">Dot Ball?</button>
+                <button class="quick-btn" onclick="setQ('NEXT BALL SPEED?','<140 KPH, >140 KPH', 1.9)">Ball Speed</button>
             </div>
-            <hr style="opacity:0.1; margin: 20px 0;">
-            <input type="text" id="m-score" placeholder="Live Score (152/3)">
-            <input type="text" id="m-over" placeholder="Over (15.2)">
-            <input type="text" id="q-text" placeholder="Question">
-            <input type="text" id="q-opts" placeholder="Options">
-            <input type="number" id="q-mult" placeholder="Multiplier" value="2">
-            <button class="btn-deploy" onclick="deploy()">DEPLOY TO ARENA</button>
+
+            <div class="section-title">🏏 Over Prediction</div>
+            <div class="btn-group">
+                <button class="quick-btn" onclick="setQ('BOUNDARY IN THIS OVER?','YES, NO', 2.2)">Boundary?</button>
+                <button class="quick-btn" onclick="setQ('WICKET IN THIS OVER?','YES, NO', 3.5)">Wicket?</button>
+                <button class="quick-btn" onclick="setQ('TOTAL RUNS IN OVER?','0-5, 6-10, 11-15, 16+', 3)">Over Runs</button>
+                <button class="quick-btn" onclick="setQ('WILL IT BE A MAIDEN?','YES, NO', 8.0)">Maiden Over</button>
+            </div>
+
+            <div class="section-title">🔥 Batsman & Pressure</div>
+            <div class="btn-group">
+                <button class="quick-btn" onclick="setQ('NEXT BATSΜΑΝ SCORE?','0-20, 21-40, 41-60, 61+', 2.5)">Player Runs</button>
+                <button class="quick-btn" onclick="setQ('HOW WILL HE GET OUT?','CATCH, BOWLED, LBW, STUMPED', 4)">Out Type</button>
+                <button class="quick-btn" onclick="setQ('WILL HE HIT A SIX?','YES, NO', 2.0)">Six Hitter?</button>
+            </div>
+
+            <div class="section-title">🎰 Powerplay & Match</div>
+            <div class="btn-group">
+                <button class="quick-btn" onclick="setQ('POWERPLAY SCORE?','<45, 45-55, >55', 2.4)">PP Score</button>
+                <button class="quick-btn" onclick="setQ('WHO WINS THIS OVER?','BATTING, BOWLING', 1.9)">Over Win</button>
+            </div>
+
+            <hr style="opacity:0.1; margin: 25px 0;">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <input type="text" id="m-score" placeholder="Score (102/3)">
+                <input type="text" id="m-over" placeholder="Over (15.2)">
+            </div>
+            <input type="text" id="q-text" placeholder="Question Title">
+            <input type="text" id="q-opts" placeholder="Options (comma separated)">
+            <button class="btn-deploy" onclick="deploy()">🚀 PUSH TO ARENA</button>
         </div>
 
-        <div class="panel">
-            <h3>📡 Dashboard (Pick Winner)</h3>
+        <div class="card">
+            <h2 style="margin-bottom:20px; font-weight:900;">📡 LIVE LIST</h2>
             <div id="active-list"></div>
-            <button onclick="db.ref('questions').remove()" style="color:red; background:none; border:none; margin-top:30px; cursor:pointer;">Wipe Arena</button>
+            <button onclick="db.ref('questions').remove()" style="background:none; border:none; color:#ef4444; margin-top:40px; cursor:pointer; font-weight:800; font-size:0.7rem; text-decoration:underline;">WIPE ALL HISTORY</button>
         </div>
     </div>
 
@@ -47,31 +82,36 @@
     firebase.initializeApp({ apiKey: "AIzaSyBwRNVxTLetigZ-JmGD0vse-kBUzR3U3OE", authDomain: "cricket-web-predict.firebaseapp.com", databaseURL: "https://cricket-web-predict-default-rtdb.firebaseio.com", projectId: "cricket-web-predict" });
     const db = firebase.database();
 
-    function setQ(q, o, m) {
-        document.getElementById('q-text').value = q;
-        document.getElementById('q-opts').value = o;
-        document.getElementById('q-mult').value = m;
+    function setQ(q, o, m) { 
+        document.getElementById('q-text').value = q; 
+        document.getElementById('q-opts').value = o; 
     }
 
     function deploy() {
-        const q = document.getElementById('q-text').value, o = document.getElementById('q-opts').value.split(',').map(s=>s.trim()), s = document.getElementById('m-score').value, v = document.getElementById('m-over').value, m = document.getElementById('q-mult').value;
-        db.ref("questions").push({ question: q, options: o, matchScore: s, matchOver: v, multiplier: parseFloat(m), result: null });
+        const q = document.getElementById('q-text').value, 
+              o = document.getElementById('q-opts').value.split(',').map(s=>s.trim()), 
+              s = document.getElementById('m-score').value, 
+              v = document.getElementById('m-over').value;
+        if(!q || !o[0]) return alert("Fill data!");
+        db.ref("questions").push({ question: q, options: o, matchScore: s, matchOver: v, multiplier: 2, result: null });
     }
 
-    db.ref("questions").on("value", (snap) => {
+    db.ref("questions").on("value", snap => {
         const list = document.getElementById('active-list');
         const data = snap.val(); list.innerHTML = ""; if(!data) return;
         Object.keys(data).reverse().forEach(id => {
             const q = data[id];
-            const div = document.createElement('div'); div.className = "active-card";
-            div.innerHTML = `<strong>${q.question}</strong><br>`;
+            const div = document.createElement('div'); div.className = "live-item";
+            div.innerHTML = `<div style="font-size:0.85rem; font-weight:800; margin-bottom:10px;">${q.question}</div>`;
             if(!q.result) {
                 q.options.forEach(opt => {
-                    const b = document.createElement('button'); b.className = "res-btn"; b.innerText = opt;
+                    const b = document.createElement('button'); b.className = "win-btn"; b.innerText = opt;
                     b.onclick = () => db.ref("questions/"+id).update({result: opt});
                     div.appendChild(b);
                 });
-            } else { div.innerHTML += `<span style="color:#38bdf8">Result: ${q.result}</span>`; }
+            } else { 
+                div.innerHTML += `<div style="color:#fbbf24; font-size:0.75rem; font-weight:800;">🏆 WINNER: ${q.result}</div>`; 
+            }
             list.appendChild(div);
         });
     });
